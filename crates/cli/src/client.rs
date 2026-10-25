@@ -8,7 +8,7 @@ use agent_msg_relay_protocol::{
     register_bytes, seal_body, seal_content_key, sign_prehash, signing_bytes, verify_prehash,
     Envelope,
 };
-use rand::TryRngCore;
+use rand::TryRng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -266,7 +266,7 @@ pub fn now_micros() -> i64 {
 
 pub fn random_bytes<const N: usize>() -> [u8; N] {
     let mut bytes = [0u8; N];
-    rand::rngs::OsRng
+    rand::rngs::SysRng
         .try_fill_bytes(&mut bytes)
         .expect("operating system random number generator failed");
     bytes
