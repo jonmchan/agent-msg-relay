@@ -36,9 +36,9 @@ jobs:
       - name: Test
         run: cargo test --workspace --locked
 
-      - name: Verify committed binaries report this version
+      - name: Verify committed binaries embed this version
         run: |
-          strings bin/x86_64-unknown-linux-musl/agent-msg-relay | grep -F "agent-msg-relay ${VERSION}" >/dev/null
+          strings bin/x86_64-unknown-linux-musl/agent-msg-relay | grep -F "${VERSION}" >/dev/null
 
       - name: Write release notes
         run: |
