@@ -27,7 +27,7 @@ jobs:
             echo "Tag v${TAG} does not match workspace version ${PKG} in Cargo.toml" >&2
             exit 1
           fi
-          echo "version=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=$TAG" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         with:
@@ -65,7 +65,7 @@ jobs:
             echo
             echo "Build from source on this tag: \`cargo build --release -p agent-msg-relay\`."
             echo
-            echo "Release process: [docs/release.md](https://github.com/${{ github.repository }}/blob/v${{ env.version }}/docs/release.md)."
+            echo "Release process: [docs/release.md](https://github.com/${{ github.repository }}/blob/v${{ env.VERSION }}/docs/release.md)."
           } > release-notes.md
           cat release-notes.md
 
