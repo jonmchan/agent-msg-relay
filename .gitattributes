@@ -1,0 +1,3 @@
+bin/**/agent-msg-relay binary
+bin/**/*.exe binary
+bin/SHA256SUMS text eol=lf

@@ -1,0 +1,101 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Monday morning UTC. Advisory databases publish after the tests last ran.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
+jobs:
+  rustsec:
+    name: RustSec
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Audit dependencies
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check licenses, advisories, and crate sources
+        uses: EmbarkStudios/cargo-deny-action@c3bbe7e4e3f7baeee1a3dd9aec0a3b2aded580fb # v2.1.1
+        with:
+          # cargo-deny 0.20 takes feature selection from deny.toml, not this flag.
+          arguments: ""
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Rust analysis reads Cargo metadata. It does not use autobuild.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@48870fdd6b42ee6474ec4207209ff87609271a5e # v4.39.0
+        with:
+          languages: rust
+          build-mode: none
+      - name: Analyze
+        uses: github/codeql-action/analyze@48870fdd6b42ee6474ec4207209ff87609271a5e # v4.39.0
+        with:
+          category: /language:rust
+
+  snyk:
+    name: Snyk
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HAS_SNYK_TOKEN: ${{ secrets.SNYK_TOKEN != '' }}
+    steps:
+      - name: Snyk token is not configured
+        if: env.HAS_SNYK_TOKEN != 'true'
+        run: echo "SNYK_TOKEN is unset. RustSec, cargo-deny, and CodeQL still gate this workflow. See docs/security.md."
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.HAS_SNYK_TOKEN == 'true'
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        if: env.HAS_SNYK_TOKEN == 'true'
+      - uses: Swatinem/rust-cache@2201cc584a476d1b508be977bbe4b7d1c7a52e9c # v2.9.3
+        if: env.HAS_SNYK_TOKEN == 'true'
+      - name: Generate a CycloneDX SBOM
+        if: env.HAS_SNYK_TOKEN == 'true'
+        run: |
+          cargo install --locked cargo-cyclonedx --version 0.5.9
+          cargo cyclonedx --all --format json --override-filename bom
+      - name: Install the Snyk CLI
+        if: env.HAS_SNYK_TOKEN == 'true'
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+      - name: Test the SBOM
+        if: env.HAS_SNYK_TOKEN == 'true'
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk sbom test --file=bom.json --severity-threshold=high
