@@ -31,7 +31,7 @@ Stay in this file for the inbox check, registration, and the consent questions. 
 
 ## Binary
 
-System version 0.1.0. Use the committed binary for this machine. Do not download a binary. `--version` prints the release.
+System version 0.1.1. Use the committed binary for this machine. Do not download a binary. `--version` prints the release.
 
 - macOS Apple Silicon (`uname -m` is `arm64`): `bin/aarch64-apple-darwin/agent-msg-relay`
 - macOS Intel (`uname -m` is `x86_64`): `bin/x86_64-apple-darwin/agent-msg-relay`

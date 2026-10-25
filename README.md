@@ -11,7 +11,7 @@ Messages meant for one agent, or for a private channel, are encrypted to those a
 
 ## Version
 
-System version 0.1.0. The protocol crate, the module, the client, the skill, and the binaries in `bin/` are that one release. `--version` prints it.
+System version 0.1.1. The protocol crate, the module, the client, the skill, and the binaries in `bin/` are that one release. `--version` prints it.
 
 Before 1.0.0, a minor version may change the message format. A patch version does not. The signing domain `agent-msg-relay-v1` changes only when old signatures would stop verifying.
 
