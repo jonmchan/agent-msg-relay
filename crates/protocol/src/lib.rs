@@ -8,7 +8,8 @@ use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use hkdf::Hkdf;
 use k256::ecdsa::signature::hazmat::{PrehashSigner, PrehashVerifier};
 use k256::ecdsa::{Signature, SigningKey, VerifyingKey};
-use k256::elliptic_curve::sec1::ToEncodedPoint;
+use k256::elliptic_curve::scalar::IsHigh;
+use k256::elliptic_curve::sec1::ToSec1Point;
 use k256::{PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -126,8 +127,7 @@ pub fn sign_prehash(secret_key_bytes: &[u8], payload: &[u8]) -> Result<Vec<u8>, 
     let signature: Signature = signing
         .sign_prehash(&digest)
         .map_err(|err| err.to_string())?;
-    let signature = signature.normalize_s().unwrap_or(signature);
-    Ok(signature.to_bytes().to_vec())
+    Ok(signature.normalize_s().to_bytes().to_vec())
 }
 
 pub fn verify_prehash(
@@ -138,7 +138,7 @@ pub fn verify_prehash(
     let verifying =
         VerifyingKey::from_sec1_bytes(public_key_sec1).map_err(|err| err.to_string())?;
     let signature = Signature::from_slice(signature).map_err(|err| err.to_string())?;
-    if signature.normalize_s().is_some() {
+    if bool::from(signature.s().is_high()) {
         return Err("signature is not low-s".into());
     }
     let digest = Sha256::digest(payload);
@@ -149,11 +149,7 @@ pub fn verify_prehash(
 
 pub fn public_key_from_secret(secret_key_bytes: &[u8]) -> Result<Vec<u8>, String> {
     let secret = SecretKey::from_slice(secret_key_bytes).map_err(|err| err.to_string())?;
-    Ok(secret
-        .public_key()
-        .to_encoded_point(true)
-        .as_bytes()
-        .to_vec())
+    Ok(secret.public_key().to_sec1_point(true).as_bytes().to_vec())
 }
 
 /// Seal a 32-byte content key to a compressed secp256k1 public key.
@@ -179,7 +175,7 @@ pub fn seal_content_key(
     let cipher = Aes256Gcm::new_from_slice(&wrapping_key).map_err(|err| err.to_string())?;
     let encrypted = cipher
         .encrypt(
-            Nonce::from_slice(nonce),
+            &Nonce::try_from(&nonce[..]).map_err(|_| "nonce must be 12 bytes".to_string())?,
             Payload {
                 msg: content_key,
                 aad: DOMAIN.as_bytes(),
@@ -187,7 +183,7 @@ pub fn seal_content_key(
         )
         .map_err(|_| "wrap encryption failed".to_string())?;
     let mut out = Vec::with_capacity(WRAP_LEN);
-    out.extend_from_slice(secret.public_key().to_encoded_point(true).as_bytes());
+    out.extend_from_slice(secret.public_key().to_sec1_point(true).as_bytes());
     out.extend_from_slice(nonce);
     out.extend_from_slice(&encrypted);
     if out.len() != WRAP_LEN {
@@ -212,7 +208,7 @@ pub fn open_content_key(secret_key_bytes: &[u8], wrap: &[u8]) -> Result<[u8; 32]
     let cipher = Aes256Gcm::new_from_slice(&wrapping_key).map_err(|err| err.to_string())?;
     let plain = cipher
         .decrypt(
-            Nonce::from_slice(nonce),
+            &Nonce::try_from(nonce).map_err(|_| "nonce must be 12 bytes".to_string())?,
             Payload {
                 msg: ciphertext,
                 aad: DOMAIN.as_bytes(),
@@ -232,7 +228,7 @@ pub fn seal_body(
     let cipher = Aes256Gcm::new_from_slice(content_key).map_err(|err| err.to_string())?;
     let encrypted = cipher
         .encrypt(
-            Nonce::from_slice(nonce),
+            &Nonce::try_from(&nonce[..]).map_err(|_| "nonce must be 12 bytes".to_string())?,
             Payload {
                 msg: plaintext,
                 aad: DOMAIN.as_bytes(),
@@ -253,7 +249,7 @@ pub fn open_body(content_key: &[u8; 32], body: &[u8]) -> Result<Vec<u8>, String>
     let cipher = Aes256Gcm::new_from_slice(content_key).map_err(|err| err.to_string())?;
     cipher
         .decrypt(
-            Nonce::from_slice(nonce),
+            &Nonce::try_from(nonce).map_err(|_| "nonce must be 12 bytes".to_string())?,
             Payload {
                 msg: ciphertext,
                 aad: DOMAIN.as_bytes(),

@@ -30,14 +30,6 @@ allow = [
     "CDLA-Permissive-2.0",
     "CC0-1.0",
 ]
-exceptions = [
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb" },
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb-bindings-macro" },
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb-bindings-sys" },
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb-lib" },
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb-primitives" },
-    { allow = ["AGPL-3.0-or-later"], crate = "spacetimedb-sats" },
-]
 
 [bans]
 multiple-versions = "warn"

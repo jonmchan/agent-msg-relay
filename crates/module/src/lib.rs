@@ -42,7 +42,7 @@ fn init(ctx: &ReducerContext) -> Out {
     Ok(())
 }
 
-#[spacetimedb::table(name = expire_schedule, scheduled(expire_due))]
+#[spacetimedb::table(accessor = expire_schedule, scheduled(expire_due))]
 pub struct ExpireSchedule {
     #[primary_key]
     #[auto_inc]
@@ -52,7 +52,7 @@ pub struct ExpireSchedule {
 
 #[spacetimedb::reducer]
 fn expire_due(ctx: &ReducerContext, _schedule: ExpireSchedule) -> Out {
-    if ctx.sender != ctx.identity() {
+    if ctx.sender() != ctx.database_identity() {
         return Err("expire_due is scheduler-only".into());
     }
     let now = now_micros(ctx);

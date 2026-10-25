@@ -44,7 +44,7 @@ pub fn require_owner(ctx: &ReducerContext) -> Out {
     let owner = limits
         .owner
         .ok_or("database owner has not claimed the limits row")?;
-    if ctx.sender != owner {
+    if ctx.sender() != owner {
         return Err("set_limits is reserved for the database owner".into());
     }
     Ok(())

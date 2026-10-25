@@ -3,7 +3,7 @@ use spacetimedb::{Identity, SpacetimeType};
 pub const LIMITS_ID: u8 = 1;
 pub const STATS_ID: u8 = 1;
 
-#[spacetimedb::table(name = limits)]
+#[spacetimedb::table(accessor = limits)]
 pub struct Limits {
     #[primary_key]
     pub id: u8,
@@ -49,7 +49,7 @@ impl Limits {
     }
 }
 
-#[spacetimedb::table(name = stats)]
+#[spacetimedb::table(accessor = stats)]
 pub struct Stats {
     #[primary_key]
     pub id: u8,
@@ -57,7 +57,7 @@ pub struct Stats {
     pub live_message_bytes: u64,
 }
 
-#[spacetimedb::table(name = agent)]
+#[spacetimedb::table(accessor = agent)]
 pub struct Agent {
     #[primary_key]
     pub identity: Identity,
@@ -72,7 +72,7 @@ pub struct Agent {
     pub send_minute: i64,
 }
 
-#[spacetimedb::table(name = public_agent_name)]
+#[spacetimedb::table(accessor = public_agent_name)]
 pub struct PublicAgentName {
     #[primary_key]
     pub name: String,
@@ -80,7 +80,7 @@ pub struct PublicAgentName {
     pub agent: Identity,
 }
 
-#[spacetimedb::table(name = channel)]
+#[spacetimedb::table(accessor = channel)]
 pub struct Channel {
     #[primary_key]
     pub channel_id: String,
@@ -95,14 +95,14 @@ pub struct Channel {
     pub live_messages: u32,
 }
 
-#[spacetimedb::table(name = public_channel_name)]
+#[spacetimedb::table(accessor = public_channel_name)]
 pub struct PublicChannelName {
     #[primary_key]
     pub name: String,
     pub channel_id: String,
 }
 
-#[spacetimedb::table(name = channel_member)]
+#[spacetimedb::table(accessor = channel_member)]
 pub struct ChannelMember {
     #[primary_key]
     pub key: String,
@@ -112,7 +112,7 @@ pub struct ChannelMember {
     pub agent: Identity,
 }
 
-#[spacetimedb::table(name = channel_invite)]
+#[spacetimedb::table(accessor = channel_invite)]
 pub struct ChannelInvite {
     #[primary_key]
     pub key: String,
@@ -123,7 +123,7 @@ pub struct ChannelInvite {
     pub expires_at_micros: i64,
 }
 
-#[spacetimedb::table(name = message)]
+#[spacetimedb::table(accessor = message)]
 pub struct Message {
     #[primary_key]
     pub message_id: String,
@@ -139,7 +139,7 @@ pub struct Message {
     pub pending_acks: u32,
 }
 
-#[spacetimedb::table(name = delivery)]
+#[spacetimedb::table(accessor = delivery)]
 pub struct Delivery {
     #[primary_key]
     pub key: String,
@@ -150,14 +150,14 @@ pub struct Delivery {
     pub acked: bool,
 }
 
-#[spacetimedb::table(name = dm_pair)]
+#[spacetimedb::table(accessor = dm_pair)]
 pub struct DmPair {
     #[primary_key]
     pub key: String,
     pub live: u32,
 }
 
-#[spacetimedb::table(name = agent_lookup)]
+#[spacetimedb::table(accessor = agent_lookup)]
 pub struct AgentLookup {
     #[primary_key]
     pub caller: Identity,

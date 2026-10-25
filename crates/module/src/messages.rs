@@ -90,7 +90,7 @@ pub fn post_message(
         .message()
         .try_insert(Message {
             message_id: message_id.clone(),
-            sender: ctx.sender,
+            sender: ctx.sender(),
             recipient_kind,
             recipient_id,
             body,
@@ -145,7 +145,7 @@ fn prepare_dm(
     }
     check_wrap(&wraps[0], &recipient_agent.public_key_hex)?;
     let limits = limits(ctx);
-    let key = dm_key(ctx.sender, recipient);
+    let key = dm_key(ctx.sender(), recipient);
     let live = ctx
         .db
         .dm_pair()
@@ -199,7 +199,7 @@ fn prepare_channel(
         .db
         .channel_member()
         .key()
-        .find(member_key(channel_id, ctx.sender))
+        .find(member_key(channel_id, ctx.sender()))
         .is_none()
     {
         return Err("only a member can post to this channel".into());
@@ -224,7 +224,7 @@ fn prepare_channel(
         }
         serde_json::from_str::<Envelope>(body).map_err(|err| err.to_string())?;
         let payload = signing_bytes(
-            &identity_string(ctx.sender),
+            &identity_string(ctx.sender()),
             "channel",
             channel_id,
             message_id,
@@ -304,7 +304,7 @@ fn check_wrap(wrap: &KeyWrapArg, public_key_hex: &str) -> Result<(), String> {
 #[spacetimedb::reducer]
 pub fn ack_message(ctx: &ReducerContext, message_id: String) -> Out {
     let agent = require_agent(ctx)?;
-    let key = format!("{message_id}|{}", identity_string(ctx.sender));
+    let key = format!("{message_id}|{}", identity_string(ctx.sender()));
     let Some(mut delivery) = ctx.db.delivery().key().find(&key) else {
         return Err("message is not waiting for this agent".into());
     };

@@ -21,6 +21,9 @@ jobs:
     name: RustSec
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,7 +42,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Check licenses, advisories, and crate sources
-        uses: EmbarkStudios/cargo-deny-action@c3bbe7e4e3f7baeee1a3dd9aec0a3b2aded580fb # v2.1.1
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
         with:
           # cargo-deny 0.20 takes feature selection from deny.toml, not this flag.
           arguments: ""
@@ -58,12 +61,12 @@ jobs:
           persist-credentials: false
       # Rust analysis reads Cargo metadata. It does not use autobuild.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@48870fdd6b42ee6474ec4207209ff87609271a5e # v4.39.0
+        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           languages: rust
           build-mode: none
       - name: Analyze
-        uses: github/codeql-action/analyze@48870fdd6b42ee6474ec4207209ff87609271a5e # v4.39.0
+        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           category: /language:rust
 
@@ -84,7 +87,9 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         if: env.HAS_SNYK_TOKEN == 'true'
-      - uses: Swatinem/rust-cache@2201cc584a476d1b508be977bbe4b7d1c7a52e9c # v2.9.3
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         if: env.HAS_SNYK_TOKEN == 'true'
       - name: Generate a CycloneDX SBOM
         if: env.HAS_SNYK_TOKEN == 'true'

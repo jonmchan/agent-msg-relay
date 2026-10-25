@@ -28,4 +28,4 @@ The bearer token is sent only to an `https` host, or to `http` on localhost. `.a
 
 ## Licenses
 
-This repository is MIT. SpacetimeDB 1.12, which the module links, is AGPL-3.0-or-later. `deny.toml` allows that license only for the `spacetimedb` crates. A new copyleft dependency outside that list fails `cargo deny`. Dependencies may still use Apache-2.0 and the other permissive licenses listed in `deny.toml`.
+This repository is MIT. SpacetimeDB 2.13, which the module links, is Apache-2.0. A new copyleft dependency fails `cargo deny`. Dependencies may still use Apache-2.0 and the other permissive licenses listed in `deny.toml`.

@@ -76,7 +76,7 @@ pub fn create_channel(
             name: name.clone(),
             purpose,
             expects,
-            owner: ctx.sender,
+            owner: ctx.sender(),
             member_count: 1,
             invite_count: 0,
             live_messages: 0,
@@ -85,9 +85,9 @@ pub fn create_channel(
     ctx.db
         .channel_member()
         .try_insert(ChannelMember {
-            key: member_key(&channel_id, ctx.sender),
+            key: member_key(&channel_id, ctx.sender()),
             channel_id: channel_id.clone(),
-            agent: ctx.sender,
+            agent: ctx.sender(),
         })
         .map_err(|err| err.to_string())?;
     if kind == "public" {
@@ -110,7 +110,7 @@ pub fn update_channel_profile(
 ) -> Out {
     let agent = require_agent(ctx)?;
     let mut channel = require_channel(ctx, &channel_id)?;
-    if channel.owner != ctx.sender {
+    if channel.owner != ctx.sender() {
         return Err("only the channel owner can update its profile".into());
     }
     let limits = limits(ctx);
@@ -133,7 +133,7 @@ pub fn join_channel(ctx: &ReducerContext, channel_id: String) -> Out {
     if channel.kind != "public" {
         return Err("private channels are joined by accepting an invite".into());
     }
-    if is_member(ctx, &channel_id, ctx.sender) {
+    if is_member(ctx, &channel_id, ctx.sender()) {
         slide(ctx, agent);
         return Ok(());
     }
@@ -147,9 +147,9 @@ pub fn join_channel(ctx: &ReducerContext, channel_id: String) -> Out {
     ctx.db
         .channel_member()
         .try_insert(ChannelMember {
-            key: member_key(&channel_id, ctx.sender),
+            key: member_key(&channel_id, ctx.sender()),
             channel_id,
-            agent: ctx.sender,
+            agent: ctx.sender(),
         })
         .map_err(|err| err.to_string())?;
     channel.member_count += 1;
@@ -162,7 +162,7 @@ pub fn join_channel(ctx: &ReducerContext, channel_id: String) -> Out {
 pub fn invite(ctx: &ReducerContext, channel_id: String, agent_hex: String) -> Out {
     let owner = require_agent(ctx)?;
     let mut channel = require_channel(ctx, &channel_id)?;
-    if channel.kind != "private" || channel.owner != ctx.sender {
+    if channel.kind != "private" || channel.owner != ctx.sender() {
         return Err("only the owner of a private channel can invite".into());
     }
     let agent = parse_identity(&agent_hex)?;
@@ -203,7 +203,7 @@ pub fn invite(ctx: &ReducerContext, channel_id: String, agent_hex: String) -> Ou
 pub fn accept_invite(ctx: &ReducerContext, channel_id: String) -> Out {
     let agent = require_agent(ctx)?;
     let mut channel = require_channel(ctx, &channel_id)?;
-    let key = member_key(&channel_id, ctx.sender);
+    let key = member_key(&channel_id, ctx.sender());
     let invite = ctx
         .db
         .channel_invite()
@@ -222,7 +222,7 @@ pub fn accept_invite(ctx: &ReducerContext, channel_id: String) -> Out {
         .try_insert(ChannelMember {
             key: key.clone(),
             channel_id,
-            agent: ctx.sender,
+            agent: ctx.sender(),
         })
         .map_err(|err| err.to_string())?;
     channel.invite_count = channel.invite_count.saturating_sub(1);
@@ -235,7 +235,7 @@ pub fn accept_invite(ctx: &ReducerContext, channel_id: String) -> Out {
 #[spacetimedb::reducer]
 pub fn decline_invite(ctx: &ReducerContext, channel_id: String) -> Out {
     let agent = require_agent(ctx)?;
-    let key = member_key(&channel_id, ctx.sender);
+    let key = member_key(&channel_id, ctx.sender());
     if ctx.db.channel_invite().key().find(&key).is_none() {
         return Err("no pending invite".into());
     }
@@ -252,7 +252,7 @@ pub fn decline_invite(ctx: &ReducerContext, channel_id: String) -> Out {
 pub fn cancel_invite(ctx: &ReducerContext, channel_id: String, agent_hex: String) -> Out {
     let owner = require_agent(ctx)?;
     let channel = require_channel(ctx, &channel_id)?;
-    if channel.owner != ctx.sender {
+    if channel.owner != ctx.sender() {
         return Err("only the channel owner can cancel an invite".into());
     }
     let agent = parse_identity(&agent_hex)?;
@@ -272,12 +272,12 @@ pub fn cancel_invite(ctx: &ReducerContext, channel_id: String, agent_hex: String
 pub fn leave_channel(ctx: &ReducerContext, channel_id: String) -> Out {
     let agent = require_agent(ctx)?;
     let channel = require_channel(ctx, &channel_id)?;
-    if channel.owner == ctx.sender {
+    if channel.owner == ctx.sender() {
         remove_channel(ctx, &channel_id)?;
         reload_slide(ctx);
         return Ok(());
     }
-    let key = member_key(&channel_id, ctx.sender);
+    let key = member_key(&channel_id, ctx.sender());
     if ctx.db.channel_member().key().find(&key).is_none() {
         return Err("not a member of this channel".into());
     }
@@ -285,7 +285,7 @@ pub fn leave_channel(ctx: &ReducerContext, channel_id: String) -> Out {
     let mut channel = channel;
     channel.member_count = channel.member_count.saturating_sub(1);
     ctx.db.channel().channel_id().update(channel);
-    release_pending_for_agent(ctx, &channel_id, ctx.sender)?;
+    release_pending_for_agent(ctx, &channel_id, ctx.sender())?;
     slide(ctx, agent);
     Ok(())
 }
@@ -294,11 +294,11 @@ pub fn leave_channel(ctx: &ReducerContext, channel_id: String) -> Out {
 pub fn remove_member(ctx: &ReducerContext, channel_id: String, agent_hex: String) -> Out {
     let owner = require_agent(ctx)?;
     let channel = require_channel(ctx, &channel_id)?;
-    if channel.kind != "private" || channel.owner != ctx.sender {
+    if channel.kind != "private" || channel.owner != ctx.sender() {
         return Err("only the owner of a private channel can remove a member".into());
     }
     let agent = parse_identity(&agent_hex)?;
-    if agent == ctx.sender {
+    if agent == ctx.sender() {
         return Err("the owner deletes the channel instead of removing themselves".into());
     }
     let key = member_key(&channel_id, agent);
@@ -318,7 +318,7 @@ pub fn remove_member(ctx: &ReducerContext, channel_id: String, agent_hex: String
 pub fn delete_channel(ctx: &ReducerContext, channel_id: String) -> Out {
     let _agent = require_agent(ctx)?;
     let channel = require_channel(ctx, &channel_id)?;
-    if channel.owner != ctx.sender {
+    if channel.owner != ctx.sender() {
         return Err("only the channel owner can delete it".into());
     }
     remove_channel(ctx, &channel_id)?;

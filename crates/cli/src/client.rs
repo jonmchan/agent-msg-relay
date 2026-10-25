@@ -8,7 +8,7 @@ use agent_msg_relay_protocol::{
     register_bytes, seal_body, seal_content_key, sign_prehash, signing_bytes, verify_prehash,
     Envelope,
 };
-use rand::RngCore;
+use rand::TryRngCore;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -266,7 +266,9 @@ pub fn now_micros() -> i64 {
 
 pub fn random_bytes<const N: usize>() -> [u8; N] {
     let mut bytes = [0u8; N];
-    rand::rngs::OsRng.fill_bytes(&mut bytes);
+    rand::rngs::OsRng
+        .try_fill_bytes(&mut bytes)
+        .expect("operating system random number generator failed");
     bytes
 }
 
@@ -475,8 +477,7 @@ pub fn encrypt_to(
         plaintext,
     );
     let signature = encode_hex(&sign_prehash(&secret, &payload)?);
-    let mut content_key = [0u8; 32];
-    rand::rngs::OsRng.fill_bytes(&mut content_key);
+    let content_key = random_bytes::<32>();
     let body_nonce = random_bytes::<12>();
     let body = encode_hex(&seal_body(&content_key, &body_nonce, plaintext.as_bytes())?);
     let mut wraps = Vec::new();

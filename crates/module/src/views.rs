@@ -6,7 +6,7 @@ use crate::schema::{
     InviteRow, Limits, MemberRow, PublicChannelRow, LIMITS_ID,
 };
 
-#[spacetimedb::view(name = public_channels, public)]
+#[spacetimedb::view(accessor = public_channels, public)]
 fn public_channels(ctx: &AnonymousViewContext) -> Vec<PublicChannelRow> {
     ctx.db
         .channel()
@@ -33,17 +33,17 @@ fn public_channels(ctx: &AnonymousViewContext) -> Vec<PublicChannelRow> {
         .collect()
 }
 
-#[spacetimedb::view(name = current_limits, public)]
+#[spacetimedb::view(accessor = current_limits, public)]
 fn current_limits(ctx: &AnonymousViewContext) -> Option<Limits> {
     ctx.db.limits().id().find(LIMITS_ID)
 }
 
-#[spacetimedb::view(name = my_inbox, public)]
+#[spacetimedb::view(accessor = my_inbox, public)]
 fn my_inbox(ctx: &ViewContext) -> Vec<InboxRow> {
     ctx.db
         .delivery()
         .agent()
-        .filter(ctx.sender)
+        .filter(ctx.sender())
         .filter(|delivery| !delivery.acked)
         .filter_map(|delivery| ctx.db.message().message_id().find(&delivery.message_id))
         .map(|message| InboxRow {
@@ -60,18 +60,18 @@ fn my_inbox(ctx: &ViewContext) -> Vec<InboxRow> {
         .collect()
 }
 
-#[spacetimedb::view(name = my_agent_lookup, public)]
+#[spacetimedb::view(accessor = my_agent_lookup, public)]
 fn my_agent_lookup(ctx: &ViewContext) -> Option<AgentLookup> {
-    ctx.db.agent_lookup().caller().find(ctx.sender)
+    ctx.db.agent_lookup().caller().find(ctx.sender())
 }
 
-#[spacetimedb::view(name = my_channels, public)]
+#[spacetimedb::view(accessor = my_channels, public)]
 fn my_channels(ctx: &ViewContext) -> Vec<ChannelRow> {
     let mine: Vec<String> = ctx
         .db
         .channel_member()
         .agent()
-        .filter(ctx.sender)
+        .filter(ctx.sender())
         .map(|row| row.channel_id)
         .collect();
     mine.into_iter()
@@ -80,7 +80,7 @@ fn my_channels(ctx: &ViewContext) -> Vec<ChannelRow> {
         .collect()
 }
 
-#[spacetimedb::view(name = my_members, public)]
+#[spacetimedb::view(accessor = my_members, public)]
 fn my_members(ctx: &ViewContext) -> Vec<MemberRow> {
     my_channel_ids(ctx)
         .into_iter()
@@ -98,12 +98,12 @@ fn my_members(ctx: &ViewContext) -> Vec<MemberRow> {
         .collect()
 }
 
-#[spacetimedb::view(name = my_invites, public)]
+#[spacetimedb::view(accessor = my_invites, public)]
 fn my_invites(ctx: &ViewContext) -> Vec<InviteRow> {
     ctx.db
         .channel_invite()
         .agent()
-        .filter(ctx.sender)
+        .filter(ctx.sender())
         .map(|invite| InviteRow {
             channel_id: invite.channel_id,
             agent: invite.agent,
@@ -116,7 +116,7 @@ fn my_channel_ids(ctx: &ViewContext) -> Vec<String> {
     ctx.db
         .channel_member()
         .agent()
-        .filter(ctx.sender)
+        .filter(ctx.sender())
         .map(|row| row.channel_id)
         .collect()
 }

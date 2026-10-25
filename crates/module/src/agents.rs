@@ -15,7 +15,7 @@ pub fn require_agent(ctx: &ReducerContext) -> Result<Agent, String> {
         .db
         .agent()
         .identity()
-        .find(ctx.sender)
+        .find(ctx.sender())
         .ok_or("register an agent first")?;
     if agent.expires_at_micros <= now_micros(ctx) {
         return Err("agent registration has expired; call register again".into());
@@ -30,7 +30,7 @@ pub fn slide(ctx: &ReducerContext, mut agent: Agent) {
 }
 
 pub fn reload_slide(ctx: &ReducerContext) {
-    if let Some(agent) = ctx.db.agent().identity().find(ctx.sender) {
+    if let Some(agent) = ctx.db.agent().identity().find(ctx.sender()) {
         slide(ctx, agent);
     }
 }
@@ -39,10 +39,10 @@ pub fn reload_slide(ctx: &ReducerContext) {
 pub fn register(ctx: &ReducerContext, public_key_hex: String, possession_sig_hex: String) -> Out {
     let pubkey = decode_pubkey(&public_key_hex)?;
     let signature = decode_hex(&possession_sig_hex)?;
-    let identity = identity_string(ctx.sender);
+    let identity = identity_string(ctx.sender());
     verify_prehash(&pubkey, &register_bytes(&identity), &signature)?;
 
-    if let Some(existing) = ctx.db.agent().identity().find(ctx.sender) {
+    if let Some(existing) = ctx.db.agent().identity().find(ctx.sender()) {
         if existing.public_key_hex != public_key_hex {
             return Err("this identity is already registered with another public key".into());
         }
@@ -65,7 +65,7 @@ pub fn register(ctx: &ReducerContext, public_key_hex: String, possession_sig_hex
     }
 
     let agent = Agent {
-        identity: ctx.sender,
+        identity: ctx.sender(),
         public_key_hex,
         purpose: String::new(),
         expires_at_micros: now_micros(ctx) + days_micros(limits.agent_ttl_days),
@@ -93,7 +93,7 @@ pub fn publish_profile(ctx: &ReducerContext, name: String, purpose: String) -> O
         .db
         .public_agent_name()
         .iter()
-        .find(|row| row.agent == ctx.sender)
+        .find(|row| row.agent == ctx.sender())
     {
         if existing.name != name {
             return Err("public name is reserved until this agent expires".into());
@@ -105,7 +105,7 @@ pub fn publish_profile(ctx: &ReducerContext, name: String, purpose: String) -> O
             .public_agent_name()
             .try_insert(PublicAgentName {
                 name: name.clone(),
-                agent: ctx.sender,
+                agent: ctx.sender(),
             })
             .map_err(|err| err.to_string())?;
     }
@@ -147,7 +147,7 @@ pub fn resolve_agent(ctx: &ReducerContext, query: String) -> Out {
                 .unwrap_or_default();
             let published = !name.is_empty();
             AgentLookup {
-                caller: ctx.sender,
+                caller: ctx.sender(),
                 found: true,
                 agent: agent.identity,
                 public_key_hex: agent.public_key_hex,
@@ -160,15 +160,15 @@ pub fn resolve_agent(ctx: &ReducerContext, query: String) -> Out {
             }
         }
         None => AgentLookup {
-            caller: ctx.sender,
+            caller: ctx.sender(),
             found: false,
-            agent: ctx.sender,
+            agent: ctx.sender(),
             public_key_hex: String::new(),
             name: String::new(),
             purpose: String::new(),
         },
     };
-    if ctx.db.agent_lookup().caller().find(ctx.sender).is_some() {
+    if ctx.db.agent_lookup().caller().find(ctx.sender()).is_some() {
         ctx.db.agent_lookup().caller().update(lookup);
     } else {
         ctx.db
@@ -185,12 +185,12 @@ pub fn resolve_agent(ctx: &ReducerContext, query: String) -> Out {
 pub fn claim_owner(ctx: &ReducerContext) -> Out {
     let mut limits = limits(ctx);
     if let Some(owner) = limits.owner {
-        if owner != ctx.sender {
+        if owner != ctx.sender() {
             return Err("database owner is already claimed".into());
         }
         return Ok(());
     }
-    limits.owner = Some(ctx.sender);
+    limits.owner = Some(ctx.sender());
     ctx.db.limits().id().update(limits);
     Ok(())
 }

@@ -94,4 +94,4 @@ It installs the inbox check because it receives tasks. The daily summary is a se
 - [Security](docs/security.md)
 - [Architecture decisions](docs/adr)
 
-This project is licensed under the [MIT License](LICENSE). The module links SpacetimeDB, which is AGPL-3.0-or-later. See [Security](docs/security.md).
+This project is licensed under the [MIT License](LICENSE). The module links SpacetimeDB, which is Apache-2.0. See [Security](docs/security.md).

@@ -20,4 +20,4 @@ When `SNYK_TOKEN` is set, the same workflow builds a CycloneDX SBOM with `cargo-
 
 A new advisory fails the Monday run without a code change. Snyk does not scan this repo until an owner adds `SNYK_TOKEN`, and a free Snyk plan may reject `snyk sbom test`. The badges on the README point at the test workflow and the security workflow.
 
-SpacetimeDB 1.12 is AGPL-3.0-or-later. `deny.toml` allows that license for the SpacetimeDB crates and denies it for everything else. This repository is MIT.
+SpacetimeDB 2.13 is Apache-2.0. `deny.toml` denies copyleft licenses for this MIT repository.
