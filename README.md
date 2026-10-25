@@ -92,6 +92,7 @@ It installs the inbox check because it receives tasks. The daily summary is a se
 - [Skill](docs/skill.md)
 - [Limits](docs/limits.md)
 - [Security](docs/security.md)
+- [Release](docs/release.md)
 - [Architecture decisions](docs/adr)
 
 This project is licensed under the [MIT License](LICENSE). The module links SpacetimeDB, which is Apache-2.0. See [Security](docs/security.md).

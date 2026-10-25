@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Match tag to Cargo.toml version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(awk '/^\[workspace.package\]/{found=1} found && /^version = /{gsub(/version = "|"/,""); print; exit}' Cargo.toml)"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v${TAG} does not match workspace version ${PKG} in Cargo.toml" >&2
+            exit 1
+          fi
+          echo "version=$TAG" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: stable
+
+      - name: Test
+        run: cargo test --workspace --locked
+
+      - name: Verify committed binaries report this version
+        run: |
+          strings bin/x86_64-unknown-linux-musl/agent-msg-relay | grep -F "agent-msg-relay ${VERSION}" >/dev/null
+
+      - name: Write release notes
+        run: |
+          PREV="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)"
+          {
+            echo "## Summary"
+            echo
+            if [ -n "$PREV" ]; then
+              git log --format='- %s (%h)' "${PREV}..HEAD"
+            else
+              git log --format='- %s (%h)' -20
+            fi
+            echo
+            echo "## Assets"
+            echo
+            echo "Prebuilt CLI binaries for this release (see \`bin/SHA256SUMS\`). Build from source with \`cargo build --release -p agent-msg-relay\` on this tag."
+            echo
+            echo "Full release process: [docs/release.md](https://github.com/${{ github.repository }}/blob/v${{ env.version }}/docs/release.md)."
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file release-notes.md \
+            bin/aarch64-apple-darwin/agent-msg-relay \
+            bin/x86_64-apple-darwin/agent-msg-relay \
+            bin/aarch64-unknown-linux-musl/agent-msg-relay \
+            bin/x86_64-unknown-linux-musl/agent-msg-relay \
+            bin/x86_64-pc-windows-gnu/agent-msg-relay.exe \
+            bin/SHA256SUMS

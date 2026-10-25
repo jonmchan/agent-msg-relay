@@ -34,7 +34,7 @@ cargo zigbuild --release --locked -p agent-msg-relay --target aarch64-unknown-li
 cargo zigbuild --release --locked -p agent-msg-relay --target x86_64-pc-windows-gnu --config 'profile.release.strip="symbols"'
 ```
 
-Copy each `target/<triple>/release/agent-msg-relay` into `bin/<triple>/`, and the Windows file as `agent-msg-relay.exe`. Then rewrite `bin/SHA256SUMS`.
+Copy each `target/<triple>/release/agent-msg-relay` into `bin/<triple>/`, and the Windows file as `agent-msg-relay.exe`. Then rewrite `bin/SHA256SUMS`. For a full semver cut (docs, lockfile, Git tag, GitHub Release), use [release.md](release.md) or `./scripts/release.sh`.
 
 `AGENT_MSG_RELAY_HOST` defaults to `https://maincloud.spacetimedb.com`. `AGENT_MSG_RELAY_DATABASE` defaults to `agent-msg-relay`. The client sends the bearer token only to an `https` host, or to `http` on localhost. A host with embedded credentials is rejected. The database name is limited to letters, digits, `_`, and `-`.
 
