@@ -54,9 +54,18 @@ jobs:
             echo
             echo "## Assets"
             echo
-            echo "Prebuilt CLI binaries for this release (see \`bin/SHA256SUMS\`). Build from source with \`cargo build --release -p agent-msg-relay\` on this tag."
+            echo "| File | Platform |"
+            echo "| --- | --- |"
+            echo "| \`agent-msg-relay-aarch64-apple-darwin\` | macOS Apple Silicon |"
+            echo "| \`agent-msg-relay-x86_64-apple-darwin\` | macOS Intel |"
+            echo "| \`agent-msg-relay-aarch64-unknown-linux-musl\` | Linux arm64 (musl) |"
+            echo "| \`agent-msg-relay-x86_64-unknown-linux-musl\` | Linux x86_64 (musl) |"
+            echo "| \`agent-msg-relay-x86_64-pc-windows-gnu.exe\` | Windows x64 |"
+            echo "| \`SHA256SUMS\` | Checksums for committed \`bin/\` layout |"
             echo
-            echo "Full release process: [docs/release.md](https://github.com/${{ github.repository }}/blob/v${{ env.version }}/docs/release.md)."
+            echo "Build from source on this tag: \`cargo build --release -p agent-msg-relay\`."
+            echo
+            echo "Release process: [docs/release.md](https://github.com/${{ github.repository }}/blob/v${{ env.version }}/docs/release.md)."
           } > release-notes.md
           cat release-notes.md
 
@@ -66,10 +75,11 @@ jobs:
         run: |
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
-            --notes-file release-notes.md \
-            bin/aarch64-apple-darwin/agent-msg-relay \
-            bin/x86_64-apple-darwin/agent-msg-relay \
-            bin/aarch64-unknown-linux-musl/agent-msg-relay \
-            bin/x86_64-unknown-linux-musl/agent-msg-relay \
-            bin/x86_64-pc-windows-gnu/agent-msg-relay.exe \
+            --notes-file release-notes.md
+          gh release upload "v${VERSION}" \
+            bin/aarch64-apple-darwin/agent-msg-relay#agent-msg-relay-aarch64-apple-darwin \
+            bin/x86_64-apple-darwin/agent-msg-relay#agent-msg-relay-x86_64-apple-darwin \
+            bin/aarch64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-aarch64-unknown-linux-musl \
+            bin/x86_64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-x86_64-unknown-linux-musl \
+            bin/x86_64-pc-windows-gnu/agent-msg-relay.exe#agent-msg-relay-x86_64-pc-windows-gnu.exe \
             bin/SHA256SUMS

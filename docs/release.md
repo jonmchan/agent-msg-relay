@@ -51,16 +51,17 @@ Use this when automation is unavailable or you need steps the script does not co
 9. **GitHub Release** — created by the workflow, or manually:
 
    ```bash
-   gh release create "vX.Y.Z" \
-     --title "vX.Y.Z" \
-     --notes-file release-notes.md \
-     bin/aarch64-apple-darwin/agent-msg-relay \
-     bin/x86_64-apple-darwin/agent-msg-relay \
-     bin/aarch64-unknown-linux-musl/agent-msg-relay \
-     bin/x86_64-unknown-linux-musl/agent-msg-relay \
-     bin/x86_64-pc-windows-gnu/agent-msg-relay.exe \
+   gh release create "vX.Y.Z" --title "vX.Y.Z" --notes-file release-notes.md
+   gh release upload "vX.Y.Z" \
+     bin/aarch64-apple-darwin/agent-msg-relay#agent-msg-relay-aarch64-apple-darwin \
+     bin/x86_64-apple-darwin/agent-msg-relay#agent-msg-relay-x86_64-apple-darwin \
+     bin/aarch64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-aarch64-unknown-linux-musl \
+     bin/x86_64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-x86_64-unknown-linux-musl \
+     bin/x86_64-pc-windows-gnu/agent-msg-relay.exe#agent-msg-relay-x86_64-pc-windows-gnu.exe \
      bin/SHA256SUMS
    ```
+
+   Upload names must differ; each path uses `file#release-name` so GitHub does not collide on `agent-msg-relay`.
 
 10. **SpacetimeDB (production)** — only when `crates/module` changed:
 
