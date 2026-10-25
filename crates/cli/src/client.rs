@@ -784,16 +784,39 @@ fn one_line(value: &str) -> String {
         .collect()
 }
 
-fn text_field(value: &Value, key: &str) -> Result<String, String> {
-    value
-        .get(key)
-        .and_then(|item| match item {
-            Value::String(text) => Some(text.clone()),
-            Value::Number(number) => Some(number.to_string()),
-            Value::Bool(flag) => Some(flag.to_string()),
-            _ => None,
-        })
+/// Decode a SpacetimeDB SQL cell. Identity and Option values arrive as nested arrays.
+pub fn decode_scalar(value: &Value) -> Option<String> {
+    match value {
+        Value::String(text) => Some(text.clone()),
+        Value::Number(number) => Some(number.to_string()),
+        Value::Bool(flag) => Some(flag.to_string()),
+        Value::Array(items) => {
+            if items.len() == 1 {
+                return decode_scalar(&items[0]);
+            }
+            if items.len() == 2 {
+                let tag = items[0].as_u64()?;
+                if tag == 0 {
+                    return decode_scalar(&items[1]);
+                }
+                if tag == 1 {
+                    return None;
+                }
+            }
+            None
+        }
+        _ => None,
+    }
+}
+
+pub fn decode_field(value: &Value, key: &str) -> Result<String, String> {
+    decode_scalar(value.get(key).ok_or_else(|| format!("missing {key}"))?)
+        .filter(|text| !text.is_empty())
         .ok_or_else(|| format!("missing {key}"))
+}
+
+fn text_field(value: &Value, key: &str) -> Result<String, String> {
+    decode_field(value, key)
 }
 
 #[cfg(test)]
@@ -899,6 +922,16 @@ mod tests {
         assert!(paste.contains(DEFAULT_REPOSITORY));
         assert!(!paste.contains("private_key"));
         assert!(!paste.contains("token-not-printed"));
+    }
+
+    #[test]
+    fn decode_scalar_reads_spacetime_identities() {
+        assert_eq!(decode_scalar(&json!(["0xabc"])).as_deref(), Some("0xabc"));
+        assert_eq!(
+            decode_scalar(&json!([0, ["0xdef"]])).as_deref(),
+            Some("0xdef")
+        );
+        assert!(decode_scalar(&json!([1, []])).is_none());
     }
 
     #[test]

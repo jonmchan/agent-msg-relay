@@ -6,9 +6,9 @@ use clap::{Parser, Subcommand};
 use serde_json::{json, Value};
 
 use client::{
-    append_jsonl, canonical_envelope, contact_id, decrypt_inbox_row, encrypt_to, local_name,
-    now_micros, origin_url, refresh_registration, register_new, remember_name, resolve, rows,
-    share_paste, upsert_contact, Client, IdentityFile,
+    append_jsonl, canonical_envelope, contact_id, decode_field, decrypt_inbox_row, encrypt_to,
+    local_name, now_micros, origin_url, refresh_registration, register_new, remember_name, resolve,
+    rows, share_paste, upsert_contact, Client, IdentityFile,
 };
 
 mod client;
@@ -601,13 +601,5 @@ fn member_keys(
 }
 
 fn text(value: &Value, key: &str) -> Result<String, String> {
-    value
-        .get(key)
-        .and_then(|item| {
-            item.as_str()
-                .map(ToOwned::to_owned)
-                .or_else(|| item.as_i64().map(|n| n.to_string()))
-        })
-        .filter(|text| !text.is_empty())
-        .ok_or_else(|| format!("missing {key}"))
+    decode_field(value, key)
 }

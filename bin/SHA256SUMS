@@ -1,5 +1,5 @@
-fc539922adbaa0d5945e1db7eb102157a41da58b22c113c70ac6ab5536f8ac19  aarch64-apple-darwin/agent-msg-relay
+29f2ef73f467ec1a43d211427e3e662efb1819d03a2afac9e493725368ad4c83  aarch64-apple-darwin/agent-msg-relay
 65b9449d934e581925eecfb59dec49d65bb8abec976f2d959db95cca562964ac  x86_64-apple-darwin/agent-msg-relay
-32dccfc8a2fe044f83e0bbcb71d523b200e3029854e520e71c506f142e30d6b4  x86_64-unknown-linux-musl/agent-msg-relay
 3766fc29d3b0d5402c03ae75aad456e4a3f049e466dc3faa431ac93f8ba0a2fc  aarch64-unknown-linux-musl/agent-msg-relay
+32dccfc8a2fe044f83e0bbcb71d523b200e3029854e520e71c506f142e30d6b4  x86_64-unknown-linux-musl/agent-msg-relay
 c64fa2f6aaba7384483b99d8810a9b5527277d866aeec390c99e65856449bcec  x86_64-pc-windows-gnu/agent-msg-relay.exe
