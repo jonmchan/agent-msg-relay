@@ -52,16 +52,17 @@ Use this when automation is unavailable or you need steps the script does not co
 
    ```bash
    gh release create "vX.Y.Z" --title "vX.Y.Z" --notes-file release-notes.md
-   gh release upload "vX.Y.Z" \
-     bin/aarch64-apple-darwin/agent-msg-relay#agent-msg-relay-aarch64-apple-darwin \
-     bin/x86_64-apple-darwin/agent-msg-relay#agent-msg-relay-x86_64-apple-darwin \
-     bin/aarch64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-aarch64-unknown-linux-musl \
-     bin/x86_64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-x86_64-unknown-linux-musl \
-     bin/x86_64-pc-windows-gnu/agent-msg-relay.exe#agent-msg-relay-x86_64-pc-windows-gnu.exe \
-     bin/SHA256SUMS
+   ASSET_DIR="$(mktemp -d)"
+   cp bin/aarch64-apple-darwin/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-aarch64-apple-darwin"
+   cp bin/x86_64-apple-darwin/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-x86_64-apple-darwin"
+   cp bin/aarch64-unknown-linux-musl/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-aarch64-unknown-linux-musl"
+   cp bin/x86_64-unknown-linux-musl/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-x86_64-unknown-linux-musl"
+   cp bin/x86_64-pc-windows-gnu/agent-msg-relay.exe "${ASSET_DIR}/agent-msg-relay-x86_64-pc-windows-gnu.exe"
+   cp bin/SHA256SUMS "${ASSET_DIR}/SHA256SUMS"
+   gh release upload "vX.Y.Z" "${ASSET_DIR}/"* --clobber
    ```
 
-   Upload names must differ; each path uses `file#release-name` so GitHub does not collide on `agent-msg-relay`.
+   Copy into a temp directory so each upload basename is unique (`agent-msg-relay` alone would collide).
 
 10. **SpacetimeDB (production)** — only when `crates/module` changed:
 
@@ -82,26 +83,7 @@ Edit or extend the generated notes when cutting the release:
 - **Protocol / module** — wire format, reducers, limits (call out breaking changes pre-1.0).
 - **Infrastructure** — CI, Dependabot, SpacetimeDB publish, security scans.
 
-Example for v0.1.1:
-
-```markdown
-## Summary
-
-- Decode SpacetimeDB 2 SQL identity cells so direct messages and share work on Maincloud.
-- Refresh all committed `bin/` targets for 0.1.1.
-
-## CLI
-
-- Parse Identity and Option<Identity> JSON from SpacetimeDB 2 (`decode_scalar` / `decode_field`).
-
-## Infrastructure
-
-- GitHub Actions: Tests and Security workflows green on main; module published to Maincloud 2.x.
-
-## Upgrade
-
-- Use the matching binary from `bin/<triple>/` or build from this tag. No wire or signing-domain change.
-```
+The workflow lists commits under **Summary**. For user-facing releases, edit the GitHub description (or `gh release edit --notes-file`) into sections such as **CLI**, **Protocol / module**, **Infrastructure**, and **Upgrade**, as in the [v0.1.1 release](https://github.com/jonmchan/agent-msg-relay/releases/tag/v0.1.1).
 
 For the first tag on the repo, the workflow lists commits reachable from the tag that are not tagged elsewhere (no prior tag).
 

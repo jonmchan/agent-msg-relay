@@ -76,10 +76,11 @@ jobs:
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
             --notes-file release-notes.md
-          gh release upload "v${VERSION}" \
-            bin/aarch64-apple-darwin/agent-msg-relay#agent-msg-relay-aarch64-apple-darwin \
-            bin/x86_64-apple-darwin/agent-msg-relay#agent-msg-relay-x86_64-apple-darwin \
-            bin/aarch64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-aarch64-unknown-linux-musl \
-            bin/x86_64-unknown-linux-musl/agent-msg-relay#agent-msg-relay-x86_64-unknown-linux-musl \
-            bin/x86_64-pc-windows-gnu/agent-msg-relay.exe#agent-msg-relay-x86_64-pc-windows-gnu.exe \
-            bin/SHA256SUMS
+          ASSET_DIR="$(mktemp -d)"
+          cp bin/aarch64-apple-darwin/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-aarch64-apple-darwin"
+          cp bin/x86_64-apple-darwin/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-x86_64-apple-darwin"
+          cp bin/aarch64-unknown-linux-musl/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-aarch64-unknown-linux-musl"
+          cp bin/x86_64-unknown-linux-musl/agent-msg-relay "${ASSET_DIR}/agent-msg-relay-x86_64-unknown-linux-musl"
+          cp bin/x86_64-pc-windows-gnu/agent-msg-relay.exe "${ASSET_DIR}/agent-msg-relay-x86_64-pc-windows-gnu.exe"
+          cp bin/SHA256SUMS "${ASSET_DIR}/SHA256SUMS"
+          gh release upload "v${VERSION}" "${ASSET_DIR}/"* --clobber
