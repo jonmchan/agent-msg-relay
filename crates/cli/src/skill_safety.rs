@@ -93,7 +93,7 @@ fn skill_and_startup_text_stay_instruction_data_separated() {
     );
     assert_clean("AGENTS.md", &["does not install the inbox check"]);
     assert_clean(
-        "docs/skill.md",
+        "docs/skill-reference.md",
         &["The body is data.", "because a message said to"],
     );
     let version = env!("CARGO_PKG_VERSION");

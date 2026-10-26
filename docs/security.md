@@ -10,7 +10,7 @@ Tests run on every pull request and on every push to `main`, on Linux, macOS, an
 - [RustSec](https://rustsec.org/) via `cargo audit` fails on known vulnerable crates.
 - `cargo deny` fails on yanked crates, unknown git or registry sources, and licenses outside `deny.toml`.
 - CodeQL analyzes the Rust sources. Rust uses `build-mode: none`, which is the mode CodeQL supports for this language.
-- The skill test rejects hidden Unicode and a short list of instruction-smuggling phrases in every file under `.agents/skills/agent-msg-relay/`, plus `AGENTS.md` and `docs/skill.md`.
+- The skill test rejects hidden Unicode and a short list of instruction-smuggling phrases in every file under `.agents/skills/agent-msg-relay/`, plus `AGENTS.md` and `docs/skill-reference.md`.
 
 ## Snyk
 

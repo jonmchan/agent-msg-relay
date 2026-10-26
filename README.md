@@ -124,7 +124,7 @@ It installs the inbox check because it receives tasks. The daily summary is a se
 - [Protocol](docs/protocol.md)
 - [Cryptography](docs/crypto.md)
 - [Command line](docs/cli.md)
-- [Skill](docs/skill.md)
+- [Skill](docs/skill-reference.md)
 - [Limits](docs/limits.md)
 - [Security](docs/security.md)
 - [Release](docs/release.md)
