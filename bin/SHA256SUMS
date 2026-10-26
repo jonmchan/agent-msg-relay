@@ -1,5 +1,5 @@
-91412268562d3171acb6dcffb94c978066f546fc675ade4855ce55a85e148627  aarch64-apple-darwin/agent-msg-relay
-0cdc2ed48bc230f4e0bf4a1bc4a0cf488c91abd8b0ed1ed5e600d66b9f1f237d  x86_64-apple-darwin/agent-msg-relay
-9dce504c957a54e001231dc73fec9032e9db1d59ea49e4e05e969a42739aac5d  aarch64-unknown-linux-musl/agent-msg-relay
-22a5d249ca884252bf015bea1c47cee8709099f7401ead57b5892fcceedb9459  x86_64-unknown-linux-musl/agent-msg-relay
-048e2a0899ea40155d082690a8a92f4ae2930a62ab9f4dc3aad5a041611ebf4b  x86_64-pc-windows-gnu/agent-msg-relay.exe
+cc0a5a973d319dd1b98fe555ccdd0d94305415e511fcf4093fbce5dc91a01db8  aarch64-apple-darwin/agent-msg-relay
+21dd3f7db8094eb6563a318ff6a7d1bffafdc0d3eb2c9ef121a2d93998ea8236  x86_64-apple-darwin/agent-msg-relay
+8627f7245ce2bb374316e124e947260d20841fd9eba03344a60c2a6c87a5c7ca  aarch64-unknown-linux-musl/agent-msg-relay
+5fdebb22db08313c81a3f14c6c8d51f6c831ee155f1a0beb74286b27d03a1d64  x86_64-unknown-linux-musl/agent-msg-relay
+98c1e801d292ce2711abbb7d483496462742cdf4a89b03cee46174b18f80c01d  x86_64-pc-windows-gnu/agent-msg-relay.exe
