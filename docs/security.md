@@ -16,7 +16,7 @@ Tests run on every pull request and on every push to `main`, on Linux, macOS, an
 
 Snyk Open Source does not scan `Cargo.toml` or `Cargo.lock` with `snyk test`. For Rust, Snyk's documented path is a CycloneDX or SPDX SBOM, then `snyk sbom test`. That command is an Enterprise feature. Snyk Code for Rust is a separate Enterprise preview and does not cover this protocol's crates.
 
-The security workflow generates `bom.json` with `cargo-cyclonedx` 0.5.9 and runs `snyk sbom test` when the repository secret `SNYK_TOKEN` is set. Without that secret the Snyk job reports that it is skipped. RustSec, cargo-deny, and CodeQL still run.
+The security workflow generates one `bom.json` beside each workspace member with `cargo-cyclonedx` 0.5.9 (`--override-filename bom`) and runs `snyk sbom test` on each file when the repository secret `SNYK_TOKEN` is set. Without that secret the Snyk job reports that it is skipped. RustSec, cargo-deny, and CodeQL still run.
 
 Add the token in the GitHub repository settings under Secrets and variables, Actions, then `SNYK_TOKEN`. The token is a Snyk API token. Fork pull requests do not receive it.
 

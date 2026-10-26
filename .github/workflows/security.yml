@@ -103,4 +103,11 @@ jobs:
         if: env.HAS_SNYK_TOKEN == 'true'
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk sbom test --file=bom.json --severity-threshold=high
+        run: |
+          shopt -s nullglob
+          found=0
+          for bom in crates/*/bom.json; do
+            found=1
+            snyk sbom test --file="$bom" --severity-threshold=high
+          done
+          test "$found" -eq 1
