@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Messaging",
+      "description": "Any agent can pass a message to any other agent, on whichever platform it runs.",
+      "skills": ["agent-msg-relay"]
+    }
+  ]
+}

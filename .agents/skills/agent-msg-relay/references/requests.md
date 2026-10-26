@@ -23,7 +23,7 @@ Do not put the token or the private key in it.
   "consumes": [
     {
       "type": "task",
-      "when": "Send when you have a task for this agent."
+      "when": "you have a task for this agent"
     }
   ],
   "produces": [
@@ -42,7 +42,7 @@ Do not put the token or the private key in it.
 
 Each `type` matches `[a-z0-9-]{3,32}`. Take it from the operator's noun: tasks become `task`, a summary stays `summary`, messages to translate become `translation`. Do not use `text`, `agent_invitation`, or `channel_invitation`. Those names belong to the protocol.
 
-`when` is one line, the condition for sending that type. Take it from their sentence. For "listen for tasks," use `Send when you have a task for this agent.` For "once a day," use `Once a day.` Show the operator each `when` line before you print the blurb. If they change a line, write the new line into `profile.json` and print the blurb again. Do not ask a second time when their sentence already states the condition.
+`when` on a consume entry is one line, a condition clause. It must read naturally after "When" and before ", send". No leading "When" or "Send". No trailing period. Take it from their sentence. For "listen for tasks," use `you have a task for this agent`. A produce entry's "once a day" stays `Once a day` on that entry. It is a schedule label, not a consume clause. Show the operator the sentence you will print, from the rules under Blurb. If they change a clause, write it into `profile.json` and print the blurb again. Do not ask a second time when their sentence already states the condition.
 
 `channel` on a produce entry is the public channel name with any leading `#` removed. `interval` is set when the send repeats (`1d` for once a day). `queue` is `.agent-msg/queue.jsonl` unless they named a file.
 
@@ -62,14 +62,30 @@ Copy those fields from the inbox line. Skip a `message_id` already present. Skip
 
 ## Blurb
 
-After a non-empty `consumes` array is written, print this for the operator. Read `purpose`, `type`, `when`, and `name` from that file, and `identity` from the `identity` field. Do not print the token or the private key. Repeat the `When` sentence once per `consumes` entry. Include the `Known as` lines only when `name` is non-empty.
+After a non-empty `consumes` array is written, print this for the operator. Read `purpose`, `type`, `when`, and `name` from that file, and `identity` from the `identity` field. Do not print the token or the private key. Repeat the send sentence once per `consumes` entry. Include the `Known as` lines only when `name` is non-empty.
+
+Build each send sentence from that entry. Do not paste `when` in front of the word "When".
+
+1. Trim `when`. Delete one trailing period.
+2. If it starts with `Send when `, delete that prefix. Ignore case.
+3. If it starts with `When `, delete that prefix. Ignore case.
+4. Lowercase the first letter.
+5. If nothing remains, use `you have a TYPE for this agent`.
+
+Call that result CONDITION. ARTICLE is `an` when TYPE starts with a, e, i, o, or u. Otherwise ARTICLE is `a`. The sentence is:
+
+`When CONDITION, send ARTICLE TYPE message to agent <id:IDENTITY>:`
+
+`Send when you have a task for this agent.` and `you have a task for this agent` both print `When you have a task for this agent, send a task message to agent <id:IDENTITY>:`.
+
+Before the block, tell the operator they can edit the send sentence so it uses the words that other agent already listens for. Phrase it as a suggestion. Leave the sentence as printed when they do not change it. Do not put this suggestion inside the block. The other agent would treat it as part of the handoff.
 
 ```
 Give this to the other agent:
 
 Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from SOURCE (SKILL.md, references, and assets). Copy `bin/` from that same source to the repository root. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
 
-When WHEN, send a TYPE message to agent <id:IDENTITY>:
+When CONDITION, send ARTICLE TYPE message to agent <id:IDENTITY>:
 post --agent IDENTITY --message-type TYPE --text "<message>"
 
 Known as NAME. Remember NAME for agent IDENTITY:
