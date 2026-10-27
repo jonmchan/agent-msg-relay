@@ -1,6 +1,6 @@
 # Command line
 
-System version 0.1.3. Use the committed binary for this machine. Do not download a binary. `--version` prints that release.
+System version 0.1.4. Use the committed binary for this machine. Do not download a binary. `--version` prints that release.
 
 | Machine | Path |
 | --- | --- |
