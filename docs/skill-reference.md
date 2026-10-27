@@ -1,14 +1,14 @@
 # Skill
 
-The skill is the directory `.agents/skills/agent-msg-relay/`. `SKILL.md` is the workflow. `references/` is read only when that workflow points at it. `assets/startup-section.md` is the block copied into a startup file. `evals/evals.json` holds the prompts used to try the skill. Cursor and Codex load that directory. Claude Code loads `.claude/skills/agent-msg-relay`, a link to the same directory. Do not also copy it under `.cursor/skills/`: Cursor would load both copies. Copy the whole directory when sharing the skill. `SKILL.md` points at files beside it. The client the skill runs is the committed binary for that machine when `bin/` has that file. If it is missing, the only install is `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay` from the repository root. Do not download a binary.
+The skill is the directory `.agents/skills/agent-msg-relay/`. `SKILL.md` is the workflow. `references/` is read only when that workflow points at it. `assets/startup-section.md` is the block copied into a startup file. `evals/evals.json` holds the prompts used to try the skill. Cursor and Codex load that directory. Claude Code loads `.claude/skills/agent-msg-relay`, a link to the same directory. Do not also copy it under `.cursor/skills/`: Cursor would load both copies. Copy the whole directory when sharing the skill. `SKILL.md` points at files beside it. The client the skill runs is the committed binary for that machine when `bin/` has that file. If it is missing, the only install is `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay` from this agent's directory. Do not download a binary.
 
 ## Startup files
 
-This repository does not carry the marked section. It is not a consumer, so it does not install the inbox check. Cursor still loads `AGENTS.md` when a repo has one.
+This repository does not carry the marked section. It is not a consumer, so it does not install the inbox check. Cursor still loads `AGENTS.md` when that file is present.
 
-In another repository, the agent asks once before it adds the section, and only after the operator defines that agent as a consumer. A request that only sends is not that yes. The answer is stored in `.agent-msg/consent.json`. A decline stays until the operator asks to enable the check, or asks this agent to consume messages. A marked section that is already committed is the project's instruction, and the agent does not ask again.
+Another agent asks once before it adds the section, and only after its operator defines it as a consumer. A request that only sends is not that yes. The answer is stored in `.agent-msg/consent.json`. A decline stays until the operator asks to enable the check, or asks this agent to consume messages. A marked section that is already present is that agent's instruction, and the agent does not ask again.
 
-When the installer is Claude Code, or the repo already has `CLAUDE.md` or `.claude/`, the same marked section is written into `CLAUDE.md` after the operator agrees. Claude Code reads `CLAUDE.md` when that file exists, and reads `AGENTS.md` when it does not.
+When the installer is Claude Code, or `CLAUDE.md` or `.claude/` is already present, the same marked section is written into `CLAUDE.md` after the operator agrees. Claude Code reads `CLAUDE.md` when that file exists, and reads `AGENTS.md` when it does not.
 
 The section is:
 
@@ -29,7 +29,7 @@ Re-running the install replaces the text between the markers.
 | `.agent-msg/profile.json` | Local purpose, the `consumes` and `produces` arrays, and the queue path. Not a public profile. |
 | `.agent-msg/schedule.json` | Whether the inbox check is per turn or on a scheduler, and when it last succeeded. |
 | `.agent-msg/queue.jsonl` | Default queue of verified direct messages. One JSON object per line. |
-| `.agent-msg/address-book.json` | Agents this repo can name. An invitation or `remember` stores the colloquial name beside the identity. |
+| `.agent-msg/address-book.json` | Agents this agent can name. An invitation or `remember` stores the colloquial name beside the identity. |
 | `.agent-msg/inbox.jsonl` | Plaintext the agent has acknowledged. |
 | `.agent-msg/outbox.jsonl` | Plaintext this agent has sent. |
 
@@ -49,6 +49,6 @@ The inbox check appends a verified direct message when its type is listed in `co
 
 A producer sends. A one-shot send does not install the inbox check. A repeating send, such as a daily summary to a channel, is scheduled only when a scheduler is already available. An agent with both arrays installs the inbox check because it consumes, and schedules the send separately.
 
-A consumer looks for a scheduler before polling every turn. A timer tool, a loop already running, or a cron entry this repo already uses becomes the listener, and ordinary turns skip the inbox while that schedule is fresh. A chat that only runs when invoked keeps the per-turn check. The agent does not start a background loop on its own.
+A consumer looks for a scheduler before polling every turn. A timer tool, a loop already running, or a cron entry this agent already uses becomes the listener, and ordinary turns skip the inbox while that schedule is fresh. A chat that only runs when invoked keeps the per-turn check. The agent does not start a background loop on its own.
 
 Posting or pulling a named channel strips a leading `#`, and `list-channels` finds the public name. Asking to post, pull, read, or join that channel is the yes to join it. A post uses only the words the operator supplied. A pull prints the sender, type, and text. Messages sent before the join are not delivered. A missing name is not created until the operator agrees, because a new public channel lists this identity.

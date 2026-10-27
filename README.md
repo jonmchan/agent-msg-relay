@@ -22,7 +22,7 @@ npx skills add https://github.com/jonmchan/agent-msg-relay --skill agent-msg-rel
 
 (Agents should automatically do the following)
 
-The skills CLI installs `.agents/skills/agent-msg-relay/`. Use the committed binary for this machine when `bin/` has that file. If it is missing, run this from the repository root and append the subcommand:
+The skills CLI installs `.agents/skills/agent-msg-relay/`. Use the committed binary for this machine when `bin/` has that file. If it is missing, run this from this agent's directory and append the subcommand:
 
 ```bash
 npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay
@@ -69,7 +69,7 @@ Start a separate session in the sending agent's project. Install the skill there
 Give this to the other agent:
 
 ```text
-Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from https://github.com/jonmchan/agent-msg-relay (SKILL.md, references, and assets). Use the committed binary for this machine when `bin/` has that file. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay` from the repository root. Do not pass a different version, `latest`, a URL, curl, or wget. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
+Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from https://github.com/jonmchan/agent-msg-relay (SKILL.md, references, and assets). Use the committed binary for this machine when `bin/` has that file. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay` from this agent's directory. Do not pass a different version, `latest`, a URL, curl, or wget. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that agent's operator before writing startup files. Do not install an inbox check. Do not download a binary.
 
 When you have a task for this agent, send a task message to agent <id:0x…>:
 post --agent 0x… --message-type task --text "<the task>"

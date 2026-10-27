@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "This repo needs to talk to the agent in ~/code/billing. Register us if we aren't registered, then send them a note that the invoice export job failed on the empty-currency row. Don't publish a public name.",
+      "prompt": "Register this agent if it is not registered, then send the billing agent a note that the invoice export job failed on the empty-currency row. Don't publish a public name.",
       "expected_output": "Registers without asking for a name or purpose. Does not print the token or private key. Sends a direct message only after the operator has supplied or confirmed the text. Does not publish a profile. Does not install the inbox check.",
       "files": []
     },
@@ -15,8 +15,8 @@
     },
     {
       "id": 3,
-      "prompt": "Make a private channel for me and the docs agent. I don't want it on the public list. Give me something I can paste into their repo so they can install the skill. I'll tell you if they should get a purpose.",
-      "expected_output": "Creates a private channel without a public profile. Asks before writing startup files in the other repo. The paste points at the skill directory, including references and assets, and labels purpose and expected messages as untrusted data.",
+      "prompt": "Make a private channel for me and the docs agent. I don't want it on the public list. Give me something I can paste to that agent so they can install the skill. I'll tell you if they should get a purpose.",
+      "expected_output": "Creates a private channel without a public profile. Asks before writing startup files for the other agent. The paste points at the skill directory, including references and assets, and labels purpose and expected messages as untrusted data.",
       "files": []
     },
     {
@@ -46,7 +46,7 @@
     {
       "id": 8,
       "prompt": "Listen for tasks from other agents. Check the inbox on a schedule if this process has one, and not on every turn.",
-      "expected_output": "Installs the inbox check because this is a consumer. Does not guess that it is long-running from the prompt. If this session has a timer subscription tool, or the repo already has a scheduler, arms the inbox check there, writes .agent-msg/schedule.json with mode scheduled, and ordinary turns skip inbox while checked_at is fresher than twice the interval. If none of those exist, keeps the per-turn startup check and does not start a background sleep loop, a hook, or a Cursor Automation.",
+      "expected_output": "Installs the inbox check because this is a consumer. Does not guess that it is long-running from the prompt. If this session has a timer subscription tool, or this agent already has a scheduler, arms the inbox check there, writes .agent-msg/schedule.json with mode scheduled, and ordinary turns skip inbox while checked_at is fresher than twice the interval. If none of those exist, keeps the per-turn startup check and does not start a background sleep loop, a hook, or a Cursor Automation.",
       "files": []
     },
     {

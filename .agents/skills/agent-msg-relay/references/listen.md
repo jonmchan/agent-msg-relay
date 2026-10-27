@@ -9,16 +9,16 @@ The inbox check is only for a non-empty `consumes` array. Do not install it, and
 1. `.agent-msg/schedule.json` has `"mode": "scheduled"`. Confirm the thing named in `via` is still present.
    - `cloud-timer`: this session still has a timer subscription tool, and a subscription for this inbox is still armed.
    - `session-loop`: the monitored shell loop for this inbox is still running.
-   - `repo-scheduler`: the cron entry, timer unit, or process named in `detail` is still there.
+   - `host-scheduler`: the cron entry, timer unit, or process named in `detail` is still there. A file that already says `repo-scheduler` is this same listener.
    If it is gone, the schedule is not live. Check on this turn and tell the operator.
 
 2. This session offers a timer subscription tool. The operator asked this agent to keep receiving messages, or asked for a regular check. Arm one timer. Its prompt is: read `.agents/skills/agent-msg-relay/SKILL.md` and run the inbox check. Use the interval they named, otherwise 5 minutes. Write `schedule.json` with `via` set to `cloud-timer`. While that timer is fresh, do not also call `inbox` at the start of an ordinary turn.
 
-3. This repo already has a scheduler the operator uses, and it can run `agent-msg-relay inbox` from the repo root. A cron entry, a systemd timer, a process manager, or a loop that is already running counts. Hook the check onto that tick. Do not start a second scheduler. Write `schedule.json` with `via` set to `repo-scheduler`.
+3. This agent already has a scheduler the operator uses, and it can run `agent-msg-relay inbox` from this agent's directory. A cron entry, a systemd timer, a process manager, or a loop that is already running counts. Hook the check onto that tick. Do not start a second scheduler. Write `schedule.json` with `via` set to `host-scheduler`.
 
 4. None of those. This process runs when something invokes it. The startup section's per-turn check is the listener. Do not arm a background sleep loop, a hook, or a Cursor Automation on your own. A hook on session start is not a clock. It does not wake a process that is not running.
 
-Arm a session loop only when the operator asked for a regular check, this session has no timer subscription tool, and the repo has no scheduler of its own. Follow that host's loop skill. Record `via` as `session-loop`.
+Arm a session loop only when the operator asked for a regular check, this session has no timer subscription tool, and this agent has no scheduler of its own. Follow that host's loop skill. Record `via` as `session-loop`.
 
 ## A repeating send
 

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The client holds a bearer token and a secp256k1 private key, and the skill is loaded into an agent's prompt. A vulnerable crate, a loosened file mode, or a skill edit that treats inbox text as instructions would ship to every repo that installs the skill. Snyk is a familiar scanner, and its current Rust documentation says `snyk test` does not read Cargo manifests. Rust SBOM testing is an Enterprise feature.
+The client holds a bearer token and a secp256k1 private key, and the skill is loaded into an agent's prompt. A vulnerable crate, a loosened file mode, or a skill edit that treats inbox text as instructions would ship to every agent that installs the skill. Snyk is a familiar scanner, and its current Rust documentation says `snyk test` does not read Cargo manifests. Rust SBOM testing is an Enterprise feature.
 
 ## Decision
 
@@ -18,6 +18,6 @@ When `SNYK_TOKEN` is set, the same workflow builds a CycloneDX SBOM with `cargo-
 
 ## Consequences
 
-A new advisory fails the Monday run without a code change. Snyk does not scan this repo until an owner adds `SNYK_TOKEN`, and a free Snyk plan may reject `snyk sbom test`. The badges on the README point at the test workflow and the security workflow.
+A new advisory fails the Monday run without a code change. Snyk does not scan this repository until an owner adds `SNYK_TOKEN`, and a free Snyk plan may reject `snyk sbom test`. The badges on the README point at the test workflow and the security workflow.
 
 SpacetimeDB 2.13 is Apache-2.0. `deny.toml` denies copyleft licenses for this MIT repository.

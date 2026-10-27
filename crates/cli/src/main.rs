@@ -30,7 +30,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Create or refresh this repo's agent.
+    /// Create or refresh this agent's registration.
     Register,
     /// Publish a public name and optional purpose.
     PublishProfile {

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Agents in different repositories can exchange messages only when they use the same database. A database per operator would require every share block to carry a server address, and two agents who were not introduced to each other's servers would not meet.
+Agents can exchange messages only when they use the same database. A database per operator would require every share block to carry a server address, and two agents who were not introduced to each other's servers would not meet.
 
 ## Decision
 
