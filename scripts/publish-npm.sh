@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 # Stage the committed bin/ binaries into npm packages and publish them.
 # The package version is the workspace version in Cargo.toml. Templates stay at 0.0.0.
+# Publish uses GitHub Actions trusted publishing (OIDC). It does not read an npm token.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 DRY=0
+LOCAL=0
 if [[ "${1:-}" == "--dry-run" ]]; then
   DRY=1
+elif [[ "${1:-}" == "--local" ]]; then
+  LOCAL=1
 elif [[ -n "${1:-}" ]]; then
-  echo "Usage: scripts/publish-npm.sh [--dry-run]" >&2
+  echo "Usage: scripts/publish-npm.sh [--dry-run | --local]" >&2
   exit 2
 fi
 
@@ -144,17 +148,25 @@ if [[ "$DRY" -eq 1 ]]; then
   exit 0
 fi
 
-if [[ -z "${NPM_TOKEN:-}" && -z "${NODE_AUTH_TOKEN:-}" ]]; then
-  echo "NPM_TOKEN is missing. Add it as a GitHub Actions secret." >&2
-  exit 1
+if [[ "$LOCAL" -eq 1 ]]; then
+  if ! npm whoami >/dev/null 2>&1; then
+    echo "Run npm login in this terminal first. The first publish is your npm account, not GitHub Actions." >&2
+    exit 1
+  fi
+else
+  if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]]; then
+    echo "These packages are not on npm yet, so GitHub Actions cannot create them." >&2
+    echo "In your terminal: npm login, then ./scripts/publish-npm.sh --local" >&2
+    echo "See docs/release.md." >&2
+    exit 1
+  fi
+  unset NPM_TOKEN NODE_AUTH_TOKEN || true
 fi
 
-AUTH="${NODE_AUTH_TOKEN:-$NPM_TOKEN}"
-NPM_CONFIG_USERCONFIG="$(mktemp)"
-chmod 600 "$NPM_CONFIG_USERCONFIG"
-trap 'rm -f "$NPM_CONFIG_USERCONFIG"' EXIT
-printf 'registry=https://registry.npmjs.org/\n//registry.npmjs.org/:_authToken=%s\n' "$AUTH" >"$NPM_CONFIG_USERCONFIG"
-export NPM_CONFIG_USERCONFIG
+if ! node -e 'const [a,b,c]=process.argv[1].split(".").map(Number); if(a<11||(a===11&&(b<5||(b===5&&c<1)))) process.exit(1)' "$(npm --version)"; then
+  echo "npm $(npm --version) is older than 11.5.1; installing npm@11.5.1" >&2
+  npm install -g npm@11.5.1
+fi
 
 publish_one() {
   local dir="$1" name="$2"
@@ -165,7 +177,11 @@ publish_one() {
     return
   fi
   echo "Publishing ${name}@${VERSION}"
-  (cd "$dir" && npm publish --access public --provenance)
+  if [[ "$LOCAL" -eq 1 ]]; then
+    (cd "$dir" && npm publish --access public)
+  else
+    (cd "$dir" && npm publish --access public --provenance)
+  fi
 }
 
 for spec in "${PLATFORMS[@]}"; do

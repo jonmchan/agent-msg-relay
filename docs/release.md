@@ -28,7 +28,7 @@ git push origin v0.1.2
 
 Pushing `v*` starts [`.github/workflows/release.yml`](../.github/workflows/release.yml). It checks that the tag matches `Cargo.toml`, runs tests, builds the GitHub Release body from commits since the previous tag, uploads every file under `bin/` (including `SHA256SUMS`), and publishes the npm packages at that version. `scripts/release.sh` rewrites every `agent-msg-relay@X.Y.Z` pin. The package templates in `npm/` stay at `0.0.0`. There is no separate npm command on a later release.
 
-The workflow reads the `NPM_TOKEN` secret. A missing secret fails the job, so a tag cannot ship a skill pin that npm does not have. Tag immediately after pushing `main`. The pin on `main` matches the package only after that publish finishes.
+npm trusts `.github/workflows/release.yml` through a trusted publisher. The workflow requests `id-token: write` and does not use an npm token. Tag immediately after pushing `main`. The pin on `main` matches the package only after that publish finishes.
 
 ```bash
 npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay
@@ -44,18 +44,57 @@ Use an explicit version instead of `patch` or `minor`:
 
 `--commit` stages the version bump, lockfile, docs, skill, binaries, and checksums. Without it, the script only prints what it would change.
 
-## npm token (once)
+## First publish, then the trusted publisher
 
-Later tags publish on their own. This setup happens once. `v0.1.4` already created a GitHub Release before the workflow published to npm, so the first npm publish is a dispatch after this workflow is on `main`.
+GitHub Actions cannot create a package. npm only shows Trusted Publisher on a package that already exists, and an OIDC publish of a missing name fails. You publish the current version once from your own terminal. The workflow publishes every later version.
 
-npm's package picker only lists packages that already exist. These six names are not on the registry yet, so the first token has to be allowed to publish every package on the account. After that publish creates them, replace it with a token scoped to those names.
+Do this in a terminal you can use for the two-factor prompt. Do not paste a token into the command.
 
-1. Create an account at [npmjs.com](https://www.npmjs.com/) if needed. The unscoped package name does not require the username `jonmchan`.
-2. Generate a granular access token. Set Packages and scopes to **Read and write** (publish and stage), and select **All packages**. Leave Organizations at no access. Allow the token to bypass two-factor authentication. Choose the shortest expiration the form allows. Do not paste the token into chat or pass it as a command argument.
-3. Add the token as the Actions secret `NPM_TOKEN` on `jonmchan/agent-msg-relay`.
-4. From the Actions tab, run the Release workflow with `workflow_dispatch` on `main`. That run publishes the workspace version. It does not create another GitHub Release.
-5. Confirm `npm view agent-msg-relay@0.1.4 version` prints that same version, and that each of the five platform packages exists at that version.
-6. Revoke the all-packages token. Generate a new granular token with the same write permission and bypass-2FA setting, and select only `agent-msg-relay`, `agent-msg-relay-darwin-arm64`, `agent-msg-relay-darwin-x64`, `agent-msg-relay-linux-arm64`, `agent-msg-relay-linux-x64`, and `agent-msg-relay-win32-x64`. Replace the `NPM_TOKEN` secret with that token. Later releases use the scoped token.
+1. Install a current npm. Trusted publishing commands need 11.15 or newer.
+
+   ```bash
+   npm install -g npm@11
+   ```
+
+2. Log in. Finish two-factor authentication in the browser.
+
+   ```bash
+   npm login
+   npm whoami
+   ```
+
+3. From the repository root, publish all six packages at the version in `Cargo.toml`. npm asks for two-factor authentication again. This is the step that creates the names on the registry.
+
+   ```bash
+   ./scripts/publish-npm.sh --local
+   ```
+
+   The packages are `agent-msg-relay`, `agent-msg-relay-darwin-arm64`, `agent-msg-relay-darwin-x64`, `agent-msg-relay-linux-arm64`, `agent-msg-relay-linux-x64`, and `agent-msg-relay-win32-x64`.
+
+4. Confirm the names exist:
+
+   ```bash
+   npm view agent-msg-relay@0.1.4 version
+   ```
+
+5. Attach `release.yml` to each package. The first command asks for two-factor authentication. On the npm site, allow skipping that prompt for five minutes, then run the rest. `--allow-publish` is required. A new configuration otherwise allows only `npm stage publish`, and this workflow runs `npm publish`.
+
+   ```bash
+   npm trust github agent-msg-relay --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   npm trust github agent-msg-relay-darwin-arm64 --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   npm trust github agent-msg-relay-darwin-x64 --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   npm trust github agent-msg-relay-linux-arm64 --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   npm trust github agent-msg-relay-linux-x64 --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   npm trust github agent-msg-relay-win32-x64 --repo jonmchan/agent-msg-relay --file release.yml --allow-publish
+   ```
+
+   Leave the environment empty. The workflow filename is `release.yml`, not a path. The same form is under each package on npmjs.com: Settings, Trusted Publisher, GitHub Actions.
+
+6. Use the link within two days or it expires. `0.1.4` is already published, so the workflow will not publish it again. Cut the next version within two days, or run the `npm trust github` commands again just before you tag.
+
+7. After a workflow publish succeeds, open each package, Settings, Publishing access, and select **Require two-factor authentication and disallow tokens**. The workflow keeps working. A long-lived token cannot publish beside it.
+
+Running the Release workflow before step 3 does not create the packages.
 
 ## Manual checklist
 
@@ -68,7 +107,7 @@ Use this when automation is unavailable or you need steps the script does not co
 5. **Rebuild binaries** — all five targets; copy into `bin/<triple>/`; rewrite `bin/SHA256SUMS` (commands in [cli.md](cli.md#refresh-the-committed-binaries)).
 6. **Verify** — `cargo test --workspace --locked` and `bin/<your-triple>/agent-msg-relay --version`.
 7. **Commit and push** to `main`.
-8. **Tag** — `git tag vX.Y.Z` and `git push origin vX.Y.Z` (tag must match `Cargo.toml` exactly, without the `v` prefix). The workflow publishes the npm packages after tests pass. `NPM_TOKEN` must already be set.
+8. **Tag** — `git tag vX.Y.Z` and `git push origin vX.Y.Z` (tag must match `Cargo.toml` exactly, without the `v` prefix). The workflow publishes the npm packages after tests pass. Each package's trusted publisher must already name `release.yml`.
 9. **GitHub Release** — created by the workflow, or manually:
 
    ```bash

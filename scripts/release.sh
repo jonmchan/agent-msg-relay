@@ -154,6 +154,6 @@ Next:
 
 GitHub Actions will create the release, attach bin/ assets, and publish
 agent-msg-relay@${VERSION} plus the five platform packages.
-NPM_TOKEN must already be a GitHub Actions secret. There is no separate npm command.
+npm trusts the release.yml workflow. There is no npm token and no separate npm command.
 Draft changelog bullets in commit messages before tagging; see docs/release.md.
 EOF
