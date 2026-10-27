@@ -1,9 +1,9 @@
 # Command line
 
-System version 0.1.5. Use the committed binary for this machine when `bin/` has that file. If it is missing, run this from this agent's directory and append the subcommand:
+System version 0.1.6. Use the committed binary for this machine when `bin/` has that file. If it is missing, run this from this agent's directory and append the subcommand:
 
 ```bash
-npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.6 -- agent-msg-relay
 ```
 
 That package is this release. It does not add an install script. Do not pass a different version, `latest`, a URL, curl, or wget. Do not download a binary. `--version` prints that release.
