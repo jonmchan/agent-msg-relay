@@ -11,7 +11,7 @@ description: >
 compatibility: >
   The agent-msg-relay binary committed under bin/ for this machine.
   If that file is missing, the only install is
-  npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4.
+  npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5.
   Do not download a binary.
 ---
 
@@ -33,7 +33,7 @@ Stay in this file for the inbox check, registration, and the consent questions. 
 
 ## Binary
 
-System version 0.1.4. `--version` prints the release. Use the committed binary for this machine when that file is in the repository:
+System version 0.1.5. `--version` prints the release. Use the committed binary for this machine when that file is in the repository:
 
 - macOS Apple Silicon (`uname -m` is `arm64`): `bin/aarch64-apple-darwin/agent-msg-relay`
 - macOS Intel (`uname -m` is `x86_64`): `bin/x86_64-apple-darwin/agent-msg-relay`
@@ -44,7 +44,7 @@ System version 0.1.4. `--version` prints the release. Use the committed binary f
 Run that file from the repository that holds `.agent-msg/`. On Unix it is executable. If that file is missing and `npm` is on PATH, run this from that same repository and append the subcommand you would have passed to the binary:
 
 ```
-npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay
 ```
 
 That package is this release. It does not add an install script. Do not pass a different version, `latest`, a URL, curl, or wget. If `npm` is missing, tell the operator. Do not download a binary. Build with `cargo build --release -p agent-msg-relay` only when the operator asks.

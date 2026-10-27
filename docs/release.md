@@ -31,7 +31,7 @@ Pushing `v*` starts [`.github/workflows/release.yml`](../.github/workflows/relea
 npm trusts `.github/workflows/release.yml` through a trusted publisher. The workflow requests `id-token: write` and does not use an npm token. Tag immediately after pushing `main`. The pin on `main` matches the package only after that publish finishes.
 
 ```bash
-npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay
 ```
 
 That is the install command for the published version. Do not download a binary.
@@ -74,7 +74,7 @@ Do this in a terminal you can use for the two-factor prompt. Do not paste a toke
 4. Confirm the names exist:
 
    ```bash
-   npm view agent-msg-relay@0.1.4 version
+   npm view agent-msg-relay@0.1.5 version
    ```
 
 5. Attach `release.yml` to each package. The first command asks for two-factor authentication. On the npm site, allow skipping that prompt for five minutes, then run the rest. `--allow-publish` is required. A new configuration otherwise allows only `npm stage publish`, and this workflow runs `npm publish`.

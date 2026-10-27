@@ -99,7 +99,8 @@ pin_files=(
 )
 for file in "${pin_files[@]}"; do
   if [[ -f "$file" ]]; then
-    perl -i -pe "s/agent-msg-relay@\\d+\\.\\d+\\.\\d+/agent-msg-relay@${VERSION}/g" "$file"
+    # The @ is escaped so Perl does not treat @0 in @0.1.5 as an array.
+    perl -i -pe 's/agent-msg-relay\@\d+\.\d+\.\d+/agent-msg-relay\@'"${VERSION}"'/g' "$file"
   fi
 done
 

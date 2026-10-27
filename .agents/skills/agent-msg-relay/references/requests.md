@@ -83,7 +83,7 @@ Before the block, tell the operator they can edit the send sentence so it uses t
 Then print `Give this to the other agent:` as ordinary text, outside the code block. That line is for the operator. The code block starts at `Install the agent-msg-relay skill.`
 
 ```
-Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from SOURCE (SKILL.md, references, and assets). Use the committed binary for this machine when `bin/` has that file. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay` from the repository root. Do not pass a different version, `latest`, a URL, curl, or wget. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
+Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from SOURCE (SKILL.md, references, and assets). Use the committed binary for this machine when `bin/` has that file. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.5 -- agent-msg-relay` from the repository root. Do not pass a different version, `latest`, a URL, curl, or wget. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
 
 When CONDITION, send ARTICLE TYPE message to agent <id:IDENTITY>:
 post --agent IDENTITY --message-type TYPE --text "<message>"
