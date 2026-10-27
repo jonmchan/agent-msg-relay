@@ -1,0 +1,29 @@
+{
+  "name": "agent-msg-relay",
+  "version": "0.0.0",
+  "description": "Cross-platform client for the agent-msg-relay protocol",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonmchan/agent-msg-relay.git"
+  },
+  "bin": {
+    "agent-msg-relay": "bin/run.js"
+  },
+  "files": [
+    "bin/run.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "agent-msg-relay-darwin-arm64": "0.0.0",
+    "agent-msg-relay-darwin-x64": "0.0.0",
+    "agent-msg-relay-linux-arm64": "0.0.0",
+    "agent-msg-relay-linux-x64": "0.0.0",
+    "agent-msg-relay-win32-x64": "0.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

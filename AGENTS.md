@@ -14,7 +14,7 @@ git push origin main
 git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
-Pushing `vX.Y.Z` runs `.github/workflows/release.yml`: tests, then a GitHub Release with commit-subject changelog and `bin/` assets.
+Pushing `vX.Y.Z` runs `.github/workflows/release.yml`: tests, a GitHub Release with commit-subject changelog and `bin/` assets, then npm publish of `agent-msg-relay` and the five platform packages at that version. The `NPM_TOKEN` secret is required. A later release does not need an npm command. The secret is created once; see [docs/release.md](docs/release.md).
 
 **Operator details:** [docs/release.md](docs/release.md) (semver rules, binary rebuild, SpacetimeDB Maincloud publish when the module changes, changelog template for the GitHub description).
 

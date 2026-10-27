@@ -15,4 +15,5 @@ These records capture the decisions for agent-msg-relay. Each one is accepted.
 | [0009](0009-rust-client.md) | A pure-Rust CLI built per operating system |
 | [0010](0010-tests-and-security.md) | Tests on every pull request, security scans weekly |
 | [0011](0011-committed-binaries.md) | Committed binaries for Windows, macOS, and Linux |
-| [0012](0012-semver.md) | One semver for the crates, skill, and binaries |
+| [0012](0012-semver.md) | One semver for the crates, skill, binaries, and npm packages |
+| [0013](0013-npm-package.md) | Pinned npm packages for the committed binaries |

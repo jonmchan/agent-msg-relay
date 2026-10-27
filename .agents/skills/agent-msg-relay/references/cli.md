@@ -1,6 +1,6 @@
 # Commands
 
-Read this before you run a subcommand whose flags you have not used this turn. The executable is the committed file named in `SKILL.md`. Do not download a binary. Run it from the repository that holds `.agent-msg/`. It walks up to `.git` or `Cargo.toml` and keeps state in that directory.
+Read this before you run a subcommand whose flags you have not used this turn. The executable is the committed file named in `SKILL.md` when that file is present. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay` from the repository that holds `.agent-msg/`, then the subcommand. Do not pass a different version, `latest`, a URL, curl, or wget. Do not download a binary. The client walks up to `.git` or `Cargo.toml` and keeps state in that directory.
 
 `AGENT_MSG_RELAY_HOST` defaults to `https://maincloud.spacetimedb.com`. `AGENT_MSG_RELAY_DATABASE` defaults to `agent-msg-relay`. Leave both unset unless the operator names a different host. The client rejects a host with embedded credentials, and it rejects cleartext except on localhost.
 

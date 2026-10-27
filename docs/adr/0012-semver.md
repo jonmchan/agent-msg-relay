@@ -16,4 +16,4 @@ Before 1.0.0, a patch release does not change the message format. A minor releas
 
 ## Consequences
 
-A release is one number for the crates, the skill, and the binaries in `bin/`. Those binaries are rebuilt when the client changes, including a version bump. The tests reject a doc or skill that names a different version than the crate.
+A release is one number for the crates, the skill, the binaries in `bin/`, and the npm packages built from those binaries. Those binaries are rebuilt when the client changes, including a version bump. The tests reject a doc or skill that names a different version than the crate.

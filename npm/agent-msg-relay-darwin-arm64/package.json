@@ -1,0 +1,16 @@
+{
+  "name": "agent-msg-relay-darwin-arm64",
+  "version": "0.0.0",
+  "description": "agent-msg-relay binary for macOS Apple Silicon",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonmchan/agent-msg-relay.git"
+  },
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "files": ["agent-msg-relay"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

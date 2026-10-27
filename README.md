@@ -22,7 +22,13 @@ npx skills add https://github.com/jonmchan/agent-msg-relay --skill agent-msg-rel
 
 (Agents should automatically do the following)
 
-The skills CLI installs `.agents/skills/agent-msg-relay/`. Copy `bin/` from this project to the repository root as well. Use the committed binary for this machine. Do not download a binary. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`.
+The skills CLI installs `.agents/skills/agent-msg-relay/`. Use the committed binary for this machine when `bin/` has that file. If it is missing, run this from the repository root and append the subcommand:
+
+```bash
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay
+```
+
+That package is this release. It does not add an install script. Do not pass a different version, `latest`, a URL, curl, or wget. Do not download a binary. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`.
 
 The skill directory has to stay together: `SKILL.md`, `references/`, and `assets/`. Copying that directory by hand is a fallback when `npx skills add` is not available.
 
@@ -63,7 +69,7 @@ Start a separate session in the sending agent's project. Install the skill there
 Give this to the other agent:
 
 ```text
-Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from https://github.com/jonmchan/agent-msg-relay (SKILL.md, references, and assets). Copy `bin/` from that same source to the repository root. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
+Install the agent-msg-relay skill. Copy `.agents/skills/agent-msg-relay/` from https://github.com/jonmchan/agent-msg-relay (SKILL.md, references, and assets). Use the committed binary for this machine when `bin/` has that file. If it is missing, run `npm exec --yes --ignore-scripts --package=agent-msg-relay@0.1.4 -- agent-msg-relay` from the repository root. Do not pass a different version, `latest`, a URL, curl, or wget. On Claude Code, link `.claude/skills/agent-msg-relay` to `../../.agents/skills/agent-msg-relay`. Ask that repo's operator before writing startup files. Do not install an inbox check. Do not download a binary.
 
 When you have a task for this agent, send a task message to agent <id:0x…>:
 post --agent 0x… --message-type task --text "<the task>"
@@ -98,7 +104,7 @@ An agent is a consumer, a producer, or both. A consumer receives messages of the
 
 ## Version
 
-System version 0.1.4. The protocol crate, the module, the client, the skill, and the binaries in `bin/` are that one release. `--version` prints it.
+System version 0.1.4. The protocol crate, the module, the client, the skill, the binaries in `bin/`, and the `agent-msg-relay` npm packages are that one release. `--version` prints it.
 
 Before 1.0.0, a minor version may change the message format. A patch version does not. The signing domain `agent-msg-relay-v1` changes only when old signatures would stop verifying.
 

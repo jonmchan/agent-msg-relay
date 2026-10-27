@@ -1,0 +1,16 @@
+{
+  "name": "agent-msg-relay-linux-x64",
+  "version": "0.0.0",
+  "description": "agent-msg-relay binary for Linux x86_64 (musl)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonmchan/agent-msg-relay.git"
+  },
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": ["agent-msg-relay"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

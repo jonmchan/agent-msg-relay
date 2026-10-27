@@ -87,6 +87,22 @@ for file in README.md docs/cli.md .agents/skills/agent-msg-relay/SKILL.md; do
   perl -i -pe "s/System version \\d+\\.\\d+\\.\\d+\\./$marker./" "$file"
 done
 
+pin_files=(
+  README.md
+  docs/cli.md
+  docs/skill-reference.md
+  docs/security.md
+  docs/release.md
+  .agents/skills/agent-msg-relay/SKILL.md
+  .agents/skills/agent-msg-relay/references/cli.md
+  .agents/skills/agent-msg-relay/references/requests.md
+)
+for file in "${pin_files[@]}"; do
+  if [[ -f "$file" ]]; then
+    perl -i -pe "s/agent-msg-relay@\\d+\\.\\d+\\.\\d+/agent-msg-relay@${VERSION}/g" "$file"
+  fi
+done
+
 cargo update -p agent-msg-relay -p agent-msg-relay-protocol -p agent-msg-relay-module
 
 rustup target add aarch64-apple-darwin x86_64-apple-darwin \
@@ -120,8 +136,12 @@ cargo test --workspace --locked
 bin/aarch64-apple-darwin/agent-msg-relay --version
 
 if [[ "$COMMIT" -eq 1 ]]; then
-  git add Cargo.toml Cargo.lock README.md docs/cli.md \
-    .agents/skills/agent-msg-relay/SKILL.md bin/
+  git add Cargo.toml Cargo.lock README.md docs/cli.md docs/skill-reference.md \
+    docs/security.md docs/release.md \
+    .agents/skills/agent-msg-relay/SKILL.md \
+    .agents/skills/agent-msg-relay/references/cli.md \
+    .agents/skills/agent-msg-relay/references/requests.md \
+    bin/
   git commit -m "Release ${VERSION} with refreshed committed CLI binaries."
 fi
 
@@ -132,6 +152,8 @@ Next:
   git tag v${VERSION}
   git push origin v${VERSION}
 
-GitHub Actions will create the release and attach bin/ assets.
+GitHub Actions will create the release, attach bin/ assets, and publish
+agent-msg-relay@${VERSION} plus the five platform packages.
+NPM_TOKEN must already be a GitHub Actions secret. There is no separate npm command.
 Draft changelog bullets in commit messages before tagging; see docs/release.md.
 EOF

@@ -107,4 +107,36 @@ fn skill_and_startup_text_stay_instruction_data_separated() {
         let text = repo_file(relative);
         assert!(text.contains(&marker), "{relative} is missing {marker}");
     }
+    let pin = format!("agent-msg-relay@{version}");
+    for relative in [
+        "README.md",
+        "docs/cli.md",
+        "docs/skill-reference.md",
+        "docs/security.md",
+        "docs/release.md",
+        ".agents/skills/agent-msg-relay/SKILL.md",
+        ".agents/skills/agent-msg-relay/references/cli.md",
+        ".agents/skills/agent-msg-relay/references/requests.md",
+    ] {
+        let text = repo_file(relative);
+        assert!(text.contains(&pin), "{relative} is missing {pin}");
+        assert!(
+            text.contains("--ignore-scripts"),
+            "{relative} is missing --ignore-scripts"
+        );
+        assert!(
+            text.contains("Do not download a binary."),
+            "{relative} is missing the download refusal"
+        );
+    }
+    let paste = super::client::share_paste(
+        "https://github.com/jonmchan/agent-msg-relay",
+        "0xabc",
+        "",
+        "",
+        "",
+    );
+    assert!(paste.contains(&pin), "share paste is missing {pin}");
+    assert!(paste.contains("--ignore-scripts"));
+    assert!(paste.contains("Do not download a binary."));
 }

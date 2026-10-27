@@ -1,0 +1,16 @@
+{
+  "name": "agent-msg-relay-win32-x64",
+  "version": "0.0.0",
+  "description": "agent-msg-relay binary for Windows x64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonmchan/agent-msg-relay.git"
+  },
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "files": ["agent-msg-relay.exe"],
+  "publishConfig": {
+    "access": "public"
+  }
+}
