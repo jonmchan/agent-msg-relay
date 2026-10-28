@@ -38,76 +38,118 @@ const slides = [
 <section class="prompts" aria-roledescription="carousel" aria-label="Example prompts">
 	<h2>Example prompts</h2>
 	<p>Each slide is a use case, then the prompt to paste.</p>
-	<div class="frame">
-		<div class="frame-bar">
-			<span data-prompt-name>{slides[0].name}</span>
-			<button class="prompt-copy" type="button" data-prompt-copy>Copy</button>
-		</div>
-		<pre><code data-prompt-text>{slides[0].text}</code></pre>
-		<div class="frame-nav">
-			<button type="button" data-prompt-prev aria-label="Previous prompt">Previous</button>
-			<div class="dots">
-				{
-					slides.map((slide, index) => (
-						<button
-							type="button"
-							data-prompt-dot={index}
-							aria-label={slide.name}
-							aria-current={index === 0 ? 'true' : 'false'}
-						/>
-					))
-				}
+	<div class="prompt-carousel" data-prompt-carousel>
+		<div class="prompt-stage">
+			<button class="prompt-arrow prompt-prev" type="button" data-prompt-prev aria-label="Previous prompt">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5" /></svg>
+			</button>
+			<button class="prompt-arrow prompt-next" type="button" data-prompt-next aria-label="Next prompt">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6.5 5.5 5.5-5.5 5.5" /></svg>
+			</button>
+			<div class="prompt-body">
+				<div class="prompt-viewport">
+					<div class="prompt-track" data-prompt-track>
+						{
+							slides.map((slide, index) => (
+								<div class="prompt-slide" data-prompt-slide aria-hidden={index === 0 ? 'false' : 'true'}>
+									<span class="prompt-kicker">{slide.name}</span>
+									<pre><code>{slide.text}</code></pre>
+								</div>
+							))
+						}
+					</div>
+				</div>
+				<button class="prompt-copy" type="button" data-prompt-copy>Copy</button>
 			</div>
-			<button type="button" data-prompt-next aria-label="Next prompt">Next</button>
+		</div>
+		<div class="dots">
+			{
+				slides.map((slide, index) => (
+					<button
+						type="button"
+						data-prompt-dot={index}
+						aria-label={slide.name}
+						aria-current={index === 0 ? 'true' : 'false'}
+					/>
+				))
+			}
 		</div>
 	</div>
 </section>
 
 <script is:inline define:vars={{ slides }}>
-	const root = document.currentScript.previousElementSibling;
-	const name = root.querySelector('[data-prompt-name]');
-	const text = root.querySelector('[data-prompt-text]');
+	const root = document.currentScript.previousElementSibling.querySelector('[data-prompt-carousel]');
+	const track = root.querySelector('[data-prompt-track]');
+	const slideEls = [...root.querySelectorAll('[data-prompt-slide]')];
 	const copy = root.querySelector('[data-prompt-copy]');
 	const dots = [...root.querySelectorAll('[data-prompt-dot]')];
+	const autoplayTime = 3000;
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	let index = 0;
-
-	function show(next) {
-		index = (next + slides.length) % slides.length;
-		const slide = slides[index];
-		name.textContent = slide.name;
-		text.textContent = slide.text;
-		copy.textContent = 'Copy';
-		for (const dot of dots) {
-			dot.setAttribute('aria-current', dot.dataset.promptDot === String(index) ? 'true' : 'false');
-		}
-	}
-
+	let progress = 0;
+	let hovered = false;
+	let focused = false;
 	let timer = 0;
-	const motionOk = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	function arm() {
+	function paused() {
+		return reduceMotion || hovered || focused;
+	}
+
+	function goTo(next) {
+		index = (next % slides.length + slides.length) % slides.length;
+		track.style.transform = 'translate3d(' + -index * 100 + '%, 0, 0)';
+		slideEls.forEach((slide, i) => {
+			slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');
+		});
+		dots.forEach((dot, i) => {
+			const on = i === index;
+			dot.setAttribute('aria-current', on ? 'true' : 'false');
+			if (!on) dot.style.removeProperty('--progress');
+		});
+		progress = 0;
+		dots[index].style.setProperty('--progress', '0%');
+		copy.textContent = 'Copy';
+	}
+
+	function tick() {
+		if (paused()) return;
+		progress += 100 / (autoplayTime / 20);
+		dots[index].style.setProperty('--progress', Math.min(progress, 100) + '%');
+		if (progress >= 100) goTo(index + 1);
+	}
+
+	function start() {
 		window.clearInterval(timer);
-		if (!motionOk) return;
-		timer = window.setInterval(() => show(index + 1), 10000);
+		if (reduceMotion) return;
+		timer = window.setInterval(tick, 20);
 	}
 
-	function manual(next) {
-		show(next);
-		arm();
-	}
-
-	root.querySelector('[data-prompt-prev]').addEventListener('click', () => manual(index - 1));
-	root.querySelector('[data-prompt-next]').addEventListener('click', () => manual(index + 1));
+	root.querySelector('[data-prompt-prev]').addEventListener('click', () => goTo(index - 1));
+	root.querySelector('[data-prompt-next]').addEventListener('click', () => goTo(index + 1));
 	for (const dot of dots) {
-		dot.addEventListener('click', () => manual(Number(dot.dataset.promptDot)));
+		dot.addEventListener('click', () => goTo(Number(dot.dataset.promptDot)));
 	}
-	root.addEventListener('mouseenter', () => window.clearInterval(timer));
-	root.addEventListener('mouseleave', arm);
-	root.addEventListener('focusin', () => window.clearInterval(timer));
-	root.addEventListener('focusout', (event) => {
-		if (!root.contains(event.relatedTarget)) arm();
+	root.addEventListener('keydown', (event) => {
+		if (event.key === 'ArrowRight') {
+			event.preventDefault();
+			goTo(index + 1);
+		} else if (event.key === 'ArrowLeft') {
+			event.preventDefault();
+			goTo(index - 1);
+		}
 	});
-	arm();
+	root.addEventListener('mouseenter', () => {
+		hovered = true;
+	});
+	root.addEventListener('mouseleave', () => {
+		hovered = false;
+	});
+	root.addEventListener('focusin', () => {
+		focused = true;
+	});
+	root.addEventListener('focusout', (event) => {
+		if (!root.contains(event.relatedTarget)) focused = false;
+	});
 	copy.addEventListener('click', async () => {
 		try {
 			await navigator.clipboard.writeText(slides[index].text);
@@ -116,4 +158,5 @@ const slides = [
 			copy.textContent = 'Copy failed';
 		}
 	});
+	start();
 </script>
