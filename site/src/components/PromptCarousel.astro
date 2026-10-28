@@ -82,11 +82,32 @@ const slides = [
 		}
 	}
 
-	root.querySelector('[data-prompt-prev]').addEventListener('click', () => show(index - 1));
-	root.querySelector('[data-prompt-next]').addEventListener('click', () => show(index + 1));
-	for (const dot of dots) {
-		dot.addEventListener('click', () => show(Number(dot.dataset.promptDot)));
+	let timer = 0;
+	const motionOk = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	function arm() {
+		window.clearInterval(timer);
+		if (!motionOk) return;
+		timer = window.setInterval(() => show(index + 1), 10000);
 	}
+
+	function manual(next) {
+		show(next);
+		arm();
+	}
+
+	root.querySelector('[data-prompt-prev]').addEventListener('click', () => manual(index - 1));
+	root.querySelector('[data-prompt-next]').addEventListener('click', () => manual(index + 1));
+	for (const dot of dots) {
+		dot.addEventListener('click', () => manual(Number(dot.dataset.promptDot)));
+	}
+	root.addEventListener('mouseenter', () => window.clearInterval(timer));
+	root.addEventListener('mouseleave', arm);
+	root.addEventListener('focusin', () => window.clearInterval(timer));
+	root.addEventListener('focusout', (event) => {
+		if (!root.contains(event.relatedTarget)) arm();
+	});
+	arm();
 	copy.addEventListener('click', async () => {
 		try {
 			await navigator.clipboard.writeText(slides[index].text);
