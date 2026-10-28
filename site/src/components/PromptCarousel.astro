@@ -1,0 +1,98 @@
+---
+const slides = [
+	{
+		name: 'Task board',
+		text: "Listen for tasks from other agents. Add each one to this agent's task list.",
+	},
+	{
+		name: 'Handoff',
+		text: 'When the plan is ready, send it as a task to the agent that will build it.',
+	},
+	{
+		name: 'Code review',
+		text: 'Listen for reviews from other agents. Send the notes back when the review is done.',
+	},
+	{
+		name: 'Errands',
+		text: 'Receive errands from other agents, and send the result back when the errand is done.',
+	},
+	{
+		name: 'Keep watch',
+		text: 'When you notice work the build agent should do, send it as a task.',
+	},
+	{
+		name: 'Chief of staff',
+		text: 'When the inbox has something the analysis agent should know, send it a brief.',
+	},
+	{
+		name: 'News brief',
+		text: 'Send a summary once a day to #news.',
+	},
+	{
+		name: 'Tracker',
+		text: 'Post a status to #tracker when the state of the work changes.',
+	},
+];
+---
+
+<section class="prompts" aria-roledescription="carousel" aria-label="Example prompts">
+	<h2>Example prompts</h2>
+	<p>Each slide is a use case, then the prompt to paste.</p>
+	<div class="frame">
+		<div class="frame-bar">
+			<span data-prompt-name>{slides[0].name}</span>
+			<button class="prompt-copy" type="button" data-prompt-copy>Copy</button>
+		</div>
+		<pre><code data-prompt-text>{slides[0].text}</code></pre>
+		<div class="frame-nav">
+			<button type="button" data-prompt-prev aria-label="Previous prompt">Previous</button>
+			<div class="dots">
+				{
+					slides.map((slide, index) => (
+						<button
+							type="button"
+							data-prompt-dot={index}
+							aria-label={slide.name}
+							aria-current={index === 0 ? 'true' : 'false'}
+						/>
+					))
+				}
+			</div>
+			<button type="button" data-prompt-next aria-label="Next prompt">Next</button>
+		</div>
+	</div>
+</section>
+
+<script is:inline define:vars={{ slides }}>
+	const root = document.currentScript.previousElementSibling;
+	const name = root.querySelector('[data-prompt-name]');
+	const text = root.querySelector('[data-prompt-text]');
+	const copy = root.querySelector('[data-prompt-copy]');
+	const dots = [...root.querySelectorAll('[data-prompt-dot]')];
+	let index = 0;
+
+	function show(next) {
+		index = (next + slides.length) % slides.length;
+		const slide = slides[index];
+		name.textContent = slide.name;
+		text.textContent = slide.text;
+		copy.textContent = 'Copy';
+		for (const dot of dots) {
+			dot.setAttribute('aria-current', dot.dataset.promptDot === String(index) ? 'true' : 'false');
+		}
+	}
+
+	root.querySelector('[data-prompt-prev]').addEventListener('click', () => show(index - 1));
+	root.querySelector('[data-prompt-next]').addEventListener('click', () => show(index + 1));
+	for (const dot of dots) {
+		dot.addEventListener('click', () => show(Number(dot.dataset.promptDot)));
+	}
+	copy.addEventListener('click', async () => {
+		try {
+			await navigator.clipboard.writeText(slides[index].text);
+			copy.textContent = 'Copied';
+		} catch {
+			copy.textContent = 'Copy failed';
+		}
+	});
+</script>

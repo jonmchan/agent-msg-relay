@@ -1,0 +1,143 @@
+---
+import { LinkButton } from '@astrojs/starlight/components';
+import AgentIcons from './AgentIcons.astro';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+
+const badges = [
+	{
+		alt: 'stars',
+		src: 'https://img.shields.io/github/stars/jonmchan/agent-msg-relay',
+		href: 'https://github.com/jonmchan/agent-msg-relay/stargazers',
+	},
+	{
+		alt: 'license',
+		src: 'https://img.shields.io/github/license/jonmchan/agent-msg-relay',
+		href: 'https://github.com/jonmchan/agent-msg-relay/blob/main/LICENSE',
+	},
+	{
+		alt: 'tests',
+		src: 'https://github.com/jonmchan/agent-msg-relay/actions/workflows/ci.yml/badge.svg',
+		href: 'https://github.com/jonmchan/agent-msg-relay/actions/workflows/ci.yml',
+	},
+	{
+		alt: 'skills.sh',
+		src: 'https://skills.sh/b/jonmchan/agent-msg-relay',
+		href: 'https://skills.sh/jonmchan/agent-msg-relay',
+	},
+];
+---
+
+<div class="hero">
+	<div class="sl-flex stack">
+		<div class="sl-flex copy">
+			<div class="badges">
+				{
+					badges.map((badge) => (
+						<a href={badge.href}>
+							<img src={badge.src} alt={badge.alt} height="20" />
+						</a>
+					))
+				}
+			</div>
+			<h1 id="_top" data-page-title set:html={title} />
+			{tagline && <div class="tagline" set:html={tagline} />}
+		</div>
+		{
+			actions.length > 0 && (
+				<div class="sl-flex actions">
+					{actions.map(
+						({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+							<LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+								{text}
+								{icon?.html && <Fragment set:html={icon.html} />}
+							</LinkButton>
+						),
+					)}
+				</div>
+			)
+		}
+	</div>
+	<div class="hero-html sl-flex">
+		<AgentIcons />
+	</div>
+</div>
+
+<style>
+	@layer starlight.core {
+		.hero {
+			display: grid;
+			grid-template-columns: 100%;
+			align-items: center;
+			gap: 1rem;
+			padding-bottom: 1rem;
+		}
+
+		.hero > .hero-html {
+			width: min(100%, 22rem);
+			height: auto;
+			margin-inline: auto;
+		}
+
+		.stack {
+			flex-direction: column;
+			gap: clamp(1.5rem, calc(1.5rem + 1vw), 2rem);
+			text-align: center;
+		}
+
+		.copy {
+			flex-direction: column;
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.copy > :not(.badges) {
+			max-width: 50ch;
+		}
+
+		h1 {
+			font-size: clamp(var(--sl-text-3xl), calc(0.25rem + 5vw), var(--sl-text-6xl));
+			line-height: var(--sl-line-height-headings);
+			font-weight: 600;
+			color: var(--sl-color-white);
+		}
+
+		.tagline {
+			font-size: clamp(var(--sl-text-base), calc(0.0625rem + 2vw), var(--sl-text-xl));
+			color: var(--sl-color-gray-2);
+		}
+
+		.actions {
+			gap: 1rem 2rem;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		@media (min-width: 50rem) {
+			.hero {
+				grid-template-columns: 7fr 4fr;
+				gap: 3%;
+				padding-block: clamp(2.5rem, calc(1rem + 10vmin), 10rem);
+			}
+
+			.hero > .hero-html {
+				width: min(100%, 25rem);
+			}
+
+			.stack {
+				text-align: start;
+			}
+
+			.copy,
+			.badges {
+				align-items: flex-start;
+				justify-content: flex-start;
+			}
+
+			.actions {
+				justify-content: flex-start;
+			}
+		}
+	}
+</style>
