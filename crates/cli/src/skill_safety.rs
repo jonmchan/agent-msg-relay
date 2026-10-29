@@ -146,13 +146,7 @@ fn skill_and_startup_text_stay_instruction_data_separated() {
             "{relative} is missing the download refusal"
         );
     }
-    let paste = super::client::share_paste(
-        "https://github.com/jonmchan/agent-msg-relay",
-        "0xabc",
-        "",
-        "",
-        "",
-    );
+    let paste = super::client::share_paste("0xabc", "", "", "");
     assert!(paste.contains(&pin), "share paste is missing {pin}");
     assert!(paste.contains("--ignore-scripts"));
     assert!(paste.contains("Do not download a binary."));

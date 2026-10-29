@@ -6,9 +6,9 @@ use clap::{Parser, Subcommand};
 use serde_json::{json, Value};
 
 use client::{
-    append_jsonl, canonical_envelope, contact_id, decode_field, decrypt_inbox_row, encrypt_to,
-    local_name, now_micros, origin_url, refresh_registration, register_new, remember_name, resolve,
-    rows, share_paste, upsert_contact, Client, IdentityFile,
+    append_consumed, append_jsonl, canonical_envelope, contact_id, decode_field, decrypt_inbox_row,
+    encrypt_to, for_display, format_inbox_message, local_name, now_micros, refresh_registration,
+    register_new, remember_name, resolve, rows, share_paste, upsert_contact, Client, IdentityFile,
 };
 
 mod client;
@@ -116,7 +116,7 @@ enum Command {
     },
     /// Touch, show new messages, and acknowledge the ones that verify.
     Inbox,
-    /// Subscribe to the inbox and run the saved wake command when mail arrives.
+    /// Subscribe to the inbox, queue verified messages, and run `.agent-msg/wake.json` when that file exists.
     Listen,
     /// Print a paste block. A known agent also receives a direct invitation.
     Share {
@@ -404,10 +404,17 @@ fn post(
     Ok(())
 }
 
-fn inbox(client: &Client) -> Result<(), String> {
+pub(crate) struct DrainStats {
+    pub queued: u64,
+    pub left_unacknowledged: u64,
+}
+
+pub(crate) fn drain_inbox(client: &Client, print: bool) -> Result<DrainStats, String> {
     let file = client.load_identity()?;
     client.call(Some(&file.token), "touch", json!([]))?;
     let payload = client.sql(&file.token, "SELECT * FROM my_inbox")?;
+    let mut queued = 0;
+    let mut left_unacknowledged = 0;
     for row in rows(&payload) {
         let sender = text(&row, "sender")?;
         let resolved = resolve(client, &file, &sender)?;
@@ -417,17 +424,32 @@ fn inbox(client: &Client) -> Result<(), String> {
             .filter(|value| !value.is_empty());
         match decrypt_inbox_row(&file, &row, public_key) {
             Ok(decoded) => {
-                println!("{decoded}");
+                let decoded = for_display(&decoded);
+                if print {
+                    println!("{}", format_inbox_message(&decoded));
+                }
                 append_jsonl(&client.state_dir().join("inbox.jsonl"), &decoded)?;
+                if append_consumed(client, &decoded)? {
+                    queued += 1;
+                }
                 let message_id = text(&decoded, "message_id")?;
                 client.call(Some(&file.token), "ack_message", json!([message_id]))?;
                 remember_invitation(client, &decoded)?;
             }
             Err(err) => {
+                left_unacknowledged += 1;
                 eprintln!("left message unacknowledged: {err}");
             }
         }
     }
+    Ok(DrainStats {
+        queued,
+        left_unacknowledged,
+    })
+}
+
+fn inbox(client: &Client) -> Result<(), String> {
+    drain_inbox(client, true)?;
     Ok(())
 }
 
@@ -517,7 +539,6 @@ fn share(
     expects: String,
 ) -> Result<(), String> {
     let file = client.load_identity()?;
-    let source = origin_url();
     let target_id = channel.clone().unwrap_or_else(|| file.identity.clone());
     let message_type = if channel.is_some() {
         "channel_invitation"
@@ -529,10 +550,7 @@ fn share(
     } else {
         String::new()
     };
-    println!(
-        "{}",
-        share_paste(&source, &target_id, &purpose, &expects, &name)
-    );
+    println!("{}", share_paste(&target_id, &purpose, &expects, &name));
     if let Some(agent) = agent {
         let resolved = resolve(client, &file, &agent_for_name(client, &file, &agent)?)?;
         if resolved.get("found").and_then(Value::as_bool) != Some(true) {

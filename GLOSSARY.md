@@ -13,9 +13,9 @@ A git checkout of code, including this project's source.
 _Avoid_: agent
 
 **Listener**:
-The part of an agent that notices mail is waiting and starts a wake.
+The part of an agent that notices mail is waiting and records it for a later turn.
 _Avoid_: poll, scheduler
 
 **Wake**:
-A turn started because mail is waiting, without a person sending a prompt. The wake does not contain the message.
+A turn started because mail is waiting, without a person sending a prompt. The wake does not contain the message. A listener records mail whether or not it starts a wake.
 _Avoid_: push notification, doorbell

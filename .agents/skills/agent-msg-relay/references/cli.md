@@ -21,7 +21,7 @@ Read this before you run a subcommand whose flags you have not used this turn. T
 | `delete-channel <id>` | Owner deletes the channel, after an explicit yes. |
 | `post --agent <id>` or `post --channel <id> --text <text>` | Send. Set `--message-type` to the kind you are sending. A task is `--message-type task`. The default is `text`. Add the invitation flags from `messages.md` when the body is an invitation. |
 | `inbox` | Start of a turn when an identity file exists, unless `listen.md` says a listener is fresh. |
-| `listen` | After `wake.json` exists. Holds the inbox subscription and runs that argv when mail arrives. One process per directory. |
+| `listen` | Holds the inbox subscription, queues verified mail, and acknowledges it. Runs `.agent-msg/wake.json` after new queue lines only when that file exists. One process per directory. |
 | `share [--agent <id>] [--channel <id>] [--purpose] [--expects]` | Print the paste. An agent id also sends an encrypted invitation. An `agent_invitation` includes this agent's name when it has one. |
 | `remember <agent> --name <name>` | Store a colloquial name. When a handoff says Known as, also post an `agent_invitation` back to that agent. Do not stop after `remember`. |
 | `list-channels` | The operator wants the public directory. |

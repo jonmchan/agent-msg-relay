@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. This supersedes the "do not start a background loop" line in [ADR 0008](0008-skill-and-consent.md) for a consumer's inbox only.
+Accepted. This supersedes the "do not start a background loop" line in [ADR 0008](0008-skill-and-consent.md) for a consumer's inbox only. [ADR 0015](0015-queue-before-wake.md) supersedes the decision below that `listen` only execs a wake and does not decrypt or acknowledge.
 
 ## Context
 

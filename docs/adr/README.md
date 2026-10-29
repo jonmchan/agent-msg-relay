@@ -18,3 +18,4 @@ These records capture the decisions for agent-msg-relay. Each one is accepted.
 | [0012](0012-semver.md) | One semver for the crates, skill, binaries, and npm packages |
 | [0013](0013-npm-package.md) | Pinned npm packages for the committed binaries |
 | [0014](0014-listener.md) | Websocket listener and an agent-written wake |
+| [0015](0015-queue-before-wake.md) | The listener queues mail; a wake is optional |

@@ -21,37 +21,31 @@ const CONNECT_BACKOFF_MAX: Duration = Duration::from_secs(30);
 const HEARTBEAT_MAX_AGE_SECS: u64 = 120;
 
 const WAKE_FAILED: &str = "wake command failed";
+const INBOX_FAILED: &str = "inbox failed";
+const LEFT_UNACKNOWLEDGED: &str = "message left unacknowledged";
 
 pub fn run(client: &Client) -> Result<(), String> {
     let identity = client.load_identity()?;
-    let argv = load_wake_argv(&client.state_dir())?;
-    validate_wake_argv(&client.root, &argv)?;
-    tighten_file(&client.state_dir().join("wake.json"))?;
     let _pid = claim_pid(&client.state_dir())?;
     eprintln!(
-        "listener started; a heartbeat older than {HEARTBEAT_MAX_AGE_SECS} seconds is not fresh"
+        "listener started; queues mail; a heartbeat older than {HEARTBEAT_MAX_AGE_SECS} seconds is not fresh"
     );
     let mut mail = MailState::new();
     let mut connect_backoff = WAKE_BACKOFF_START;
     loop {
-        match session(client, &identity.token, &argv, &mut mail) {
+        match session(client, &identity.token, &mut mail) {
             Ok(()) => connect_backoff = WAKE_BACKOFF_START,
             Err(err) => {
                 let _ = fs::remove_file(client.state_dir().join("listener-heartbeat"));
                 eprintln!("listener disconnected: {}", redact(&err, &identity.token));
-                sleep_while_polling(client, &argv, &mut mail, connect_backoff);
+                sleep_while_polling(client, &mut mail, connect_backoff);
                 connect_backoff = (connect_backoff * 2).min(CONNECT_BACKOFF_MAX);
             }
         }
     }
 }
 
-fn session(
-    client: &Client,
-    token: &str,
-    argv: &[String],
-    mail: &mut MailState,
-) -> Result<(), String> {
+fn session(client: &Client, token: &str, mail: &mut MailState) -> Result<(), String> {
     let url = websocket_url(&client.host, &client.database)?;
     let uri = url
         .parse()
@@ -111,15 +105,15 @@ fn session(
                 touch(client, token);
                 last_touch = Instant::now();
             }
-            poll_wake(client, argv, mail);
+            poll_mail(client, token, mail);
         }
     }
 }
 
-fn sleep_while_polling(client: &Client, argv: &[String], mail: &mut MailState, total: Duration) {
+fn sleep_while_polling(client: &Client, mail: &mut MailState, total: Duration) {
     let end = Instant::now() + total;
     while Instant::now() < end {
-        poll_wake(client, argv, mail);
+        poll_mail(client, "", mail);
         let slice = Duration::from_millis(200).min(end.saturating_duration_since(Instant::now()));
         if slice.is_zero() {
             break;
@@ -128,23 +122,58 @@ fn sleep_while_polling(client: &Client, argv: &[String], mail: &mut MailState, t
     }
 }
 
-fn poll_wake(client: &Client, argv: &[String], mail: &mut MailState) {
+fn poll_mail(client: &Client, token: &str, mail: &mut MailState) {
     match mail.poll_child() {
         Some(true) => clear_unhealthy(&client.state_dir()),
         Some(false) => {
-            let _ = mark_unhealthy(&client.state_dir());
+            let _ = mark_unhealthy(&client.state_dir(), WAKE_FAILED);
         }
         None => {}
     }
-    if mail.wants_wake(Instant::now()) {
-        match spawn_wake(&client.root, argv) {
+    let now = Instant::now();
+    if mail.wants_drain(now) {
+        match crate::drain_inbox(client, false) {
+            Ok(stats) => {
+                if stats.left_unacknowledged > 0 {
+                    eprintln!("listener left a message unacknowledged");
+                    let _ = mark_unhealthy(&client.state_dir(), LEFT_UNACKNOWLEDGED);
+                    mail.note_failure(now);
+                } else {
+                    mail.note_drained();
+                    if stats.queued > 0 {
+                        match optional_wake(&client.root, &client.state_dir()) {
+                            Ok(Some(argv)) => {
+                                mail.notify_pending = true;
+                                mail.argv = argv;
+                            }
+                            Ok(None) => clear_unhealthy(&client.state_dir()),
+                            Err(err) => {
+                                eprintln!("listener wake was not started: {err}");
+                                let _ = mark_unhealthy(&client.state_dir(), WAKE_FAILED);
+                                mail.note_failure(now);
+                            }
+                        }
+                    } else {
+                        clear_unhealthy(&client.state_dir());
+                    }
+                }
+            }
+            Err(err) => {
+                eprintln!("listener inbox failed: {}", redact(&err, token));
+                let _ = mark_unhealthy(&client.state_dir(), INBOX_FAILED);
+                mail.note_failure(now);
+            }
+        }
+    }
+    if mail.wants_notify(Instant::now()) {
+        match spawn_wake(&client.root, &mail.argv) {
             Ok(child) => {
                 mail.child = Some(child);
                 mail.retry_at = None;
             }
             Err(err) => {
                 eprintln!("listener wake failed to start: {err}");
-                let _ = mark_unhealthy(&client.state_dir());
+                let _ = mark_unhealthy(&client.state_dir(), WAKE_FAILED);
                 mail.note_failure(Instant::now());
             }
         }
@@ -213,25 +242,34 @@ fn redact(text: &str, token: &str) -> String {
 #[derive(Debug)]
 struct MailState {
     outstanding: u64,
+    generation: u64,
+    drained_generation: u64,
     child: Option<Child>,
     backoff: Duration,
     retry_at: Option<Instant>,
     unhealthy: bool,
+    notify_pending: bool,
+    argv: Vec<String>,
 }
 
 impl MailState {
     fn new() -> Self {
         Self {
             outstanding: 0,
+            generation: 0,
+            drained_generation: 0,
             child: None,
             backoff: WAKE_BACKOFF_START,
             retry_at: None,
             unhealthy: false,
+            notify_pending: false,
+            argv: Vec::new(),
         }
     }
 
     fn on_snapshot(&mut self, count: u64) {
         self.outstanding = count;
+        self.generation = self.generation.saturating_add(1);
     }
 
     fn on_delta(&mut self, inserts: u64, deletes: u64) {
@@ -239,6 +277,7 @@ impl MailState {
             .outstanding
             .saturating_add(inserts)
             .saturating_sub(deletes);
+        self.generation = self.generation.saturating_add(1);
     }
 
     fn poll_child(&mut self) -> Option<bool> {
@@ -247,6 +286,7 @@ impl MailState {
             Ok(Some(status)) => {
                 let success = status.success();
                 if success {
+                    self.notify_pending = false;
                     self.note_success();
                 } else {
                     eprintln!("listener wake exited {}", status.code().unwrap_or(1));
@@ -266,6 +306,12 @@ impl MailState {
         }
     }
 
+    fn note_drained(&mut self) {
+        self.drained_generation = self.generation;
+        self.backoff = WAKE_BACKOFF_START;
+        self.retry_at = None;
+    }
+
     fn note_success(&mut self) {
         self.backoff = WAKE_BACKOFF_START;
         self.retry_at = None;
@@ -278,8 +324,18 @@ impl MailState {
         self.backoff = (self.backoff * 2).min(WAKE_BACKOFF_MAX);
     }
 
-    fn wants_wake(&self, now: Instant) -> bool {
-        if self.child.is_some() || self.outstanding == 0 {
+    fn wants_drain(&self, now: Instant) -> bool {
+        if self.child.is_some()
+            || self.outstanding == 0
+            || self.drained_generation == self.generation
+        {
+            return false;
+        }
+        self.retry_at.map(|at| now >= at).unwrap_or(true)
+    }
+
+    fn wants_notify(&self, now: Instant) -> bool {
+        if self.child.is_some() || !self.notify_pending {
             return false;
         }
         self.retry_at.map(|at| now >= at).unwrap_or(true)
@@ -357,11 +413,20 @@ fn count_rows(value: Option<&Value>) -> u64 {
         .unwrap_or(0)
 }
 
+fn optional_wake(root: &Path, state_dir: &Path) -> Result<Option<Vec<String>>, String> {
+    let path = state_dir.join("wake.json");
+    if !path.exists() {
+        return Ok(None);
+    }
+    let argv = load_wake_argv(state_dir)?;
+    validate_wake_argv(root, &argv)?;
+    tighten_file(&path)?;
+    Ok(Some(argv))
+}
+
 fn load_wake_argv(state_dir: &Path) -> Result<Vec<String>, String> {
     let path = state_dir.join("wake.json");
-    let text = fs::read_to_string(&path).map_err(|_| {
-        "no .agent-msg/wake.json; the skill writes that file before listen".to_string()
-    })?;
+    let text = fs::read_to_string(&path).map_err(|err| err.to_string())?;
     let value: Value = serde_json::from_str(&text).map_err(|err| err.to_string())?;
     let argv = value
         .get("argv")
@@ -386,6 +451,9 @@ pub(crate) fn validate_wake_argv(root: &Path, argv: &[String]) -> Result<(), Str
         }
     }
     let program = &argv[0];
+    if is_shell(program) {
+        return Err("wake program must not be a shell".into());
+    }
     if !program.contains('/') && !program.contains('\\') {
         if program == "." || program == ".." {
             return Err("wake program must be a command name or a file under .agent-msg".into());
@@ -405,6 +473,25 @@ pub(crate) fn validate_wake_argv(root: &Path, argv: &[String]) -> Result<(), Str
         return Err("wake program must be a command name or a file under .agent-msg".into());
     }
     Ok(())
+}
+
+fn is_shell(program: &str) -> bool {
+    let name = program.rsplit(['/', '\\']).next().unwrap_or(program);
+    let lower = name.to_ascii_lowercase();
+    let lower = lower.strip_suffix(".exe").unwrap_or(&lower);
+    matches!(
+        lower,
+        "sh" | "bash"
+            | "zsh"
+            | "dash"
+            | "fish"
+            | "ksh"
+            | "csh"
+            | "tcsh"
+            | "cmd"
+            | "powershell"
+            | "pwsh"
+    )
 }
 
 struct PidGuard {
@@ -474,10 +561,10 @@ fn write_heartbeat(state_dir: &Path) -> Result<(), String> {
     )
 }
 
-fn mark_unhealthy(state_dir: &Path) -> Result<(), String> {
+fn mark_unhealthy(state_dir: &Path, reason: &str) -> Result<(), String> {
     write_private(
         &state_dir.join("listener-unhealthy"),
-        format!("{WAKE_FAILED}\n").as_bytes(),
+        format!("{reason}\n").as_bytes(),
     )
 }
 
@@ -533,11 +620,14 @@ mod tests {
     fn outstanding_follows_snapshot_then_ack() {
         let mut mail = MailState::new();
         mail.on_snapshot(2);
-        assert!(mail.wants_wake(Instant::now()));
+        assert!(mail.wants_drain(Instant::now()));
+        mail.note_drained();
+        assert!(!mail.wants_drain(Instant::now()));
         mail.on_delta(1, 0);
+        assert!(mail.wants_drain(Instant::now()));
         mail.on_delta(0, 3);
         assert_eq!(mail.outstanding, 0);
-        assert!(!mail.wants_wake(Instant::now()));
+        assert!(!mail.wants_drain(Instant::now()));
     }
 
     #[test]
@@ -546,12 +636,12 @@ mod tests {
         mail.on_snapshot(1);
         let now = Instant::now();
         mail.note_failure(now);
-        assert!(!mail.wants_wake(now));
+        assert!(!mail.wants_drain(now));
         assert!(mail.unhealthy);
-        assert!(mail.wants_wake(now + WAKE_BACKOFF_START));
+        assert!(mail.wants_drain(now + WAKE_BACKOFF_START));
         mail.note_success();
         assert!(!mail.unhealthy);
-        assert!(mail.wants_wake(now));
+        assert!(mail.wants_drain(now));
     }
 
     #[test]
@@ -559,7 +649,9 @@ mod tests {
         let mut mail = MailState::new();
         mail.on_snapshot(1);
         mail.child = Some(Command::new("sleep").arg("30").spawn().unwrap());
-        assert!(!mail.wants_wake(Instant::now()));
+        mail.notify_pending = true;
+        assert!(!mail.wants_drain(Instant::now()));
+        assert!(!mail.wants_notify(Instant::now()));
         let _ = mail.child.take().unwrap().kill();
     }
 
@@ -572,6 +664,8 @@ mod tests {
         fs::write(&outside, b"echo\n").unwrap();
         assert!(validate_wake_argv(&root, &[outside.display().to_string()]).is_err());
         assert!(validate_wake_argv(&root, &["agent".into(), "-p".into(), "check".into()]).is_ok());
+        assert!(validate_wake_argv(&root, &["bash".into(), "-c".into(), "echo".into()]).is_err());
+        assert!(validate_wake_argv(&root, &["/bin/bash".into()]).is_err());
         let script = state.join("wake.sh");
         fs::write(&script, b"echo\n").unwrap();
         assert!(validate_wake_argv(&root, &[script.display().to_string()]).is_ok());
