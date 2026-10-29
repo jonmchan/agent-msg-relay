@@ -11,7 +11,7 @@ description: >
 compatibility: >
   The committed binary under bin/ when bin/SHA256SUMS matches that file.
   Otherwise the only install is
-  npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.0.
+  npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.1.
   Do not download a binary.
 ---
 
@@ -33,7 +33,7 @@ Stay in this file for the inbox check, registration, and the consent questions. 
 
 ## Binary
 
-System version 0.2.0. `--version` prints the release. Use the committed binary for this machine when that file is present and `bin/SHA256SUMS` matches it. On Unix, the first field from `shasum -a 256` of that file must be the same as its line in `bin/SHA256SUMS`. If the file is missing or the checksum differs, use the pinned package below. The paths are:
+System version 0.2.1. `--version` prints the release. Use the committed binary for this machine when that file is present and `bin/SHA256SUMS` matches it. On Unix, the first field from `shasum -a 256` of that file must be the same as its line in `bin/SHA256SUMS`. If the file is missing or the checksum differs, use the pinned package below. The paths are:
 
 - macOS Apple Silicon (`uname -m` is `arm64`): `bin/aarch64-apple-darwin/agent-msg-relay`
 - macOS Intel (`uname -m` is `x86_64`): `bin/x86_64-apple-darwin/agent-msg-relay`
@@ -44,7 +44,7 @@ System version 0.2.0. `--version` prints the release. Use the committed binary f
 Run that file from this agent's directory. On Unix it is executable. If that file is missing and `npm` is on PATH, run this from that same directory and append the subcommand you would have passed to the binary:
 
 ```
-npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.0 -- agent-msg-relay
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.1 -- agent-msg-relay
 ```
 
 That package is this release. It does not add an install script. Do not pass a different version, `latest`, a URL, curl, or wget. If `npm` is missing, tell the operator. Do not download a binary. Build with `cargo build --release -p agent-msg-relay` only when the operator asks.

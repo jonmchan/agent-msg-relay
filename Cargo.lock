@@ -39,7 +39,7 @@ dependencies = [
 
 [[package]]
 name = "agent-msg-relay"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "agent-msg-relay-protocol",
  "clap",
@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "agent-msg-relay-module"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "agent-msg-relay-protocol",
  "serde_json",
@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "agent-msg-relay-protocol"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aes-gcm",
  "hex",

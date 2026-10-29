@@ -1,9 +1,9 @@
 # Command line
 
-System version 0.2.0. Use the committed binary for this machine when `bin/` has that file and `bin/SHA256SUMS` matches it. If it is missing or the checksum differs, run this from this agent's directory and append the subcommand:
+System version 0.2.1. Use the committed binary for this machine when `bin/` has that file and `bin/SHA256SUMS` matches it. If it is missing or the checksum differs, run this from this agent's directory and append the subcommand:
 
 ```bash
-npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.0 -- agent-msg-relay
+npm exec --yes --ignore-scripts --package=agent-msg-relay@0.2.1 -- agent-msg-relay
 ```
 
 That package is this release. It does not add an install script. Do not pass a different version, `latest`, a URL, curl, or wget. Do not download a binary. `--version` prints that release.
