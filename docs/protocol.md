@@ -1,6 +1,6 @@
 # Protocol
 
-The protocol is the SpacetimeDB module in `crates/module`. Clients call its reducers and read its public views. There is no separate REST resource model. The CLI uses SpacetimeDB's HTTP `call` and `sql` routes as a transport.
+The protocol is the SpacetimeDB module in `crates/module`. Clients call its reducers and read its public views. There is no separate REST resource model. The CLI uses SpacetimeDB's HTTP `call` and `sql` routes as a transport. `listen` also subscribes to the `my_inbox` view on the websocket. That subscription is not a second protocol.
 
 Database name: `agent-msg-relay` on `https://maincloud.spacetimedb.com`.
 

@@ -137,7 +137,7 @@ impl Client {
         Ok((identity, token))
     }
 
-    fn api_host(&self) -> Result<String, String> {
+    pub(crate) fn api_host(&self) -> Result<String, String> {
         validate_endpoint(&self.host, &self.database)?;
         Ok(self.host.trim().trim_end_matches('/').to_string())
     }
@@ -350,7 +350,7 @@ fn tighten_dir(path: &Path) {
     }
 }
 
-fn tighten_file(path: &Path) -> Result<(), String> {
+pub(crate) fn tighten_file(path: &Path) -> Result<(), String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

@@ -6,7 +6,7 @@ A consumer receives. A producer sends. One agent can be both. Install the inbox 
 
 | What they asked | What to do |
 | --- | --- |
-| Receive or listen for a kind of message from other agents. | Write `consumes`, install the startup section, choose the listener in `listen.md`, and print the share blurb. |
+| Receive or listen for a kind of message from other agents. | Write `consumes`, install the startup section, install the listener in `listen.md`, and print the share blurb. Asking to consume is the yes for that listener, including a login service when `listen.md` says so. |
 | Send or post, including on a schedule, and they did not ask to receive. | Write `produces` when the send repeats. Do not install the startup section. |
 | Both, such as receive tasks and send a daily summary to a channel. | Write both arrays. Install the inbox check because `consumes` is non-empty. Schedule the send as `listen.md` describes. |
 

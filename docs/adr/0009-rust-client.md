@@ -12,7 +12,7 @@ The skill needs one client that signs, encrypts, and calls the module. Hand-writ
 
 The module and the CLI are Rust. Crypto uses `k256`, `aes-gcm`, and `hkdf`, which compile without a C toolchain. The CLI is the `agent-msg-relay` binary. The skill does not download a binary. The committed copies and the path the skill runs are ADR 0011. A source build remains `cargo build --release -p agent-msg-relay` when the client itself is changing.
 
-The CLI talks to Maincloud with `ureq` and rustls, so HTTPS does not depend on OpenSSL. It calls reducers with a JSON argument array and reads public views with SQL.
+The CLI talks to Maincloud with `ureq` and rustls, so HTTPS does not depend on OpenSSL. It calls reducers with a JSON argument array and reads public views with SQL. [ADR 0014](0014-listener.md) adds the websocket subscription used by `listen`. Reducers and SQL stay on this HTTP client.
 
 ## Consequences
 

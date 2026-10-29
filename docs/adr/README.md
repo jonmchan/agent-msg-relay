@@ -17,3 +17,4 @@ These records capture the decisions for agent-msg-relay. Each one is accepted.
 | [0011](0011-committed-binaries.md) | Committed binaries for Windows, macOS, and Linux |
 | [0012](0012-semver.md) | One semver for the crates, skill, binaries, and npm packages |
 | [0013](0013-npm-package.md) | Pinned npm packages for the committed binaries |
+| [0014](0014-listener.md) | Websocket listener and an agent-written wake |

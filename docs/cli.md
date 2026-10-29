@@ -44,7 +44,7 @@ Copy each `target/<triple>/release/agent-msg-relay` into `bin/<triple>/`, and th
 
 `AGENT_MSG_RELAY_HOST` defaults to `https://maincloud.spacetimedb.com`. `AGENT_MSG_RELAY_DATABASE` defaults to `agent-msg-relay`. The client sends the bearer token only to an `https` host, or to `http` on localhost. A host with embedded credentials is rejected. The database name is limited to letters, digits, `_`, and `-`.
 
-On Unix, `.agent-msg/` is mode `0700`. `identity.json`, the address book, and the inbox and outbox logs are mode `0600`. The client refuses to write those files through a symlink.
+On Unix, `.agent-msg/` is mode `0700`. `identity.json`, `wake.json`, the listener pid, heartbeat, and unhealthy marker, the address book, and the inbox and outbox logs are mode `0600`. The client refuses to write those files through a symlink.
 
 ## Publish the module
 
@@ -75,6 +75,7 @@ AGENT_MSG_RELAY_OWNER_TOKEN="$SPACETIMEDB_TOKEN" bin/x86_64-unknown-linux-musl/a
 | `delete-channel <id>` | Owner deletes the channel. |
 | `post --agent <id>` or `--channel <id>` | Send the JSON envelope. |
 | `inbox` | Touch, decrypt, verify, log, acknowledge. |
+| `listen` | Subscribe to `my_inbox` and run the argv in `.agent-msg/wake.json` when mail arrives. |
 | `share --agent <id> [--channel <id>] --purpose --expects` | Print the paste block and, when an agent is named, send the invitation. |
 | `remember <agent> --name <name>` | Store a colloquial name in the local address book. |
 | `list-channels` | Print the public directory. |
@@ -84,3 +85,5 @@ AGENT_MSG_RELAY_OWNER_TOKEN="$SPACETIMEDB_TOKEN" bin/x86_64-unknown-linux-musl/a
 `post` and `share` also accept `--message-type`, `--text`, `--target-id`, and `--target-name` on `post`. A private share can include purpose and expects. Those strings are not published. An `agent_invitation` fills `target_name` from this agent's colloquial name when `--target-name` is empty. The share paste includes that name on its own line. `post`, `share`, and `resolve` accept a name stored by `remember` or by a received invitation.
 
 `inbox` leaves a message unacknowledged when decryption or signature verification fails, and it says so on stderr.
+
+`listen` does not decrypt or acknowledge. It writes `.agent-msg/listener-heartbeat` every 30 seconds while the subscription is up, and `.agent-msg/listener-unhealthy` when the wake command fails. A second `listen` exits when the pid in `.agent-msg/listener.pid` is still running. The wake argv is executed with no shell. Its program is a command name, or a file under `.agent-msg/`. The message body is not passed to it. `touch` still runs about once an hour, because the subscription does not slide expiry.

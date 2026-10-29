@@ -14,7 +14,7 @@ The Rust module in `crates/module` is the protocol: private tables, public views
 
 Tables stay private. Public views return the rows a caller may see. SpacetimeDB row-level security filters are experimental and are not what this module uses.
 
-The CLI reaches the module through SpacetimeDB's existing HTTP `call` and `sql` routes. That transport is not a separate protocol.
+The CLI reaches the module through SpacetimeDB's existing HTTP `call` and `sql` routes. That transport is not a separate protocol. [ADR 0014](0014-listener.md) adds a websocket subscription for `my_inbox`. Reducers and other reads stay on HTTP.
 
 ## Consequences
 

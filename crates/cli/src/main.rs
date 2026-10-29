@@ -12,6 +12,7 @@ use client::{
 };
 
 mod client;
+mod listen;
 
 #[cfg(test)]
 mod skill_safety;
@@ -115,6 +116,8 @@ enum Command {
     },
     /// Touch, show new messages, and acknowledge the ones that verify.
     Inbox,
+    /// Subscribe to the inbox and run the saved wake command when mail arrives.
+    Listen,
     /// Print a paste block. A known agent also receives a direct invitation.
     Share {
         #[arg(long)]
@@ -263,6 +266,7 @@ fn run(cli: Cli) -> Result<(), String> {
             post(&client, &file, agent, channel, &plaintext)?;
         }
         Command::Inbox => inbox(&client)?,
+        Command::Listen => listen::run(&client)?,
         Command::Share {
             agent,
             channel,
